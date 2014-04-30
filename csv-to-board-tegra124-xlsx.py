@@ -42,7 +42,7 @@ if args.debug:
 if dbg: print(args)
 
 supported_boards = {
-    'jetson-tk1': 'T124_customer_pinmux_PM375_29Oct2013-PM375Beaver_Configuration.csv', # worksheet Customer_Configuration
+    'jetson-tk1': 'T124_customer_pinmux_PM375_30Apr2014_v2.csv', # worksheet PM375Beaver_Configuration
     'venice2': 'Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv', # worksheet Venice2_T124_customer_pinmux_ba
 }
 
@@ -226,9 +226,6 @@ with open(csvfile, newline='') as fh:
             # These balls' pad type is always OD, so we don't need to set it
             # FIXME: There are a few other OD type pads to check for
             # FIXME: The SoC data structure should tell us the pad type instead of hard-coding it
-            od = False
-        # FIXME: The spreadsheet should be fixed...
-        if (args.board == 'jetson-tk1') and (ball_name == 'kb_row13'):
             od = False
 
         if od and not gpio_pin.od:
