@@ -200,10 +200,6 @@ with open(csvfile, newline='') as fh:
         else:
             gpio_init = None
 
-        # FIXME: The spreadsheet should be fixed...
-        if (args.board == 'venice2') and (ball_name == 'gpio_pi5'):
-            pupd = 'up'
-
         gpio_pin = soc.gpio_or_pin_by_name(ball_name)
         for i, func in enumerate((f0, f1, f2, f3)):
             if func != gpio_pin.funcs[i]:
