@@ -43,7 +43,7 @@ if dbg: print(args)
 
 supported_boards = {
     'jetson-tk1': 'T124_customer_pinmux_PM375_30Apr2014_v2.csv', # worksheet PM375Beaver_Configuration
-    'venice2': 'Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv', # worksheet Venice2_T124_customer_pinmux_ba
+    'venice2': 'Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv', # worksheet Customer_Configuration
 }
 
 if not args.board in supported_boards:
