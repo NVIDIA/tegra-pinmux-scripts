@@ -168,3 +168,5 @@ print('''\
 
 #endif /* PINMUX_CONFIG_%s_H */
 ''' % board.definename, end='')
+
+board.warn_about_unconfigured_pins()

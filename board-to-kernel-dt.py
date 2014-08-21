@@ -63,3 +63,5 @@ for pincfg in board.pincfgs_by_num():
 # FIXME: Handle drive groups
 
 print('		};')
+
+board.warn_about_unconfigured_pins()
