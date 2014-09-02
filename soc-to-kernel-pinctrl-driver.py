@@ -385,7 +385,7 @@ static int %(soc)s_pinctrl_probe(struct platform_device *pdev)
 	return tegra_pinctrl_probe(pdev, &%(soc)s_pinctrl);
 }
 
-static struct of_device_id %(soc)s_pinctrl_of_match[] = {
+static const struct of_device_id %(soc)s_pinctrl_of_match[] = {
 	{ .compatible = "nvidia,%(soc)s-pinmux", },
 	{ },
 };
