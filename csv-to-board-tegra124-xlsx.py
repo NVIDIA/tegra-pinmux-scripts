@@ -47,6 +47,7 @@ supported_boards = {
         # T124_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd)
         # Jetson_TK1_customer_pinmux_release.xlsm worksheet Jetson TK1 Configuration (1-based rsvd)
         'filename': 'csv/jetson-tk1.csv',
+        'rsvd_0based': False,
     },
     'norrin': {
         # PM370_T124_customer_pinmux_1.1.xlsm worksheet Customer_Configuration (0-based rsvd)
@@ -62,6 +63,9 @@ if not args.board in supported_boards:
     print('ERROR: Unsupported board %s' % args.board, file=sys.stderr)
     sys.exit(1)
 board_conf = supported_boards[args.board]
+if not 'rsvd_0based' in board_conf:
+    # FIXME: This should default to False for some future chip
+    board_conf['rsvd_0based'] = True
 
 soc = tegra_pmx_soc_parser.load_soc('tegra124')
 
@@ -108,7 +112,9 @@ def func_munge(f):
         return 'sdmmc2'
     if f in ('ir3_rxd', 'ir3_txd'):
         return 'irda'
-    return rsvd_0base_to_1base(f)
+    if board_conf['rsvd_0based']:
+        return rsvd_0base_to_1base(f)
+    return f
 
 def pupd_munge(d):
     return {
