@@ -219,9 +219,8 @@ with open(csvfile, newline='') as fh:
             print('ERROR: %s: MUX CSV %s not in SOC F0..3 %s' % (ball_name, mux, repr(gpio_pin.funcs)), file=sys.stderr)
             sys.exit(1)
 
-        if ball_name.startswith('ddc_'):
+        if ball_name in ('reset_out_n', 'owr', 'hdmi_int', 'ddc_scl', 'ddc_sda'):
             # These balls' pad type is always OD, so we don't need to set it
-            # FIXME: There are a few other OD type pads to check for
             # FIXME: The SoC data structure should tell us the pad type instead of hard-coding it
             od = False
 
