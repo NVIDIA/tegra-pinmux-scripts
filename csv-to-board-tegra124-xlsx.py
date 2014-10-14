@@ -35,6 +35,9 @@ dbg = False
 parser = argparse.ArgumentParser(description='Create a board config' +
     'from a CSV version of the Venice2 pinmux spreadsheet')
 parser.add_argument('--debug', action='store_true', help='Turn on debugging prints')
+parser.add_argument('--csv', default=argparse.SUPPRESS, help='CSV file to parse')
+parser.add_argument('--rsvd-0based', action='store_true', dest='rsvd_0based', default=argparse.SUPPRESS, help='Assume 0-based RSVD numbering')
+parser.add_argument('--rsvd-1based', action='store_false', dest='rsvd_0based', default=argparse.SUPPRESS, help='Assume 1-based RSVD numbering')
 parser.add_argument('board', help='Board name')
 args = parser.parse_args()
 if args.debug:
@@ -66,6 +69,11 @@ board_conf = supported_boards[args.board]
 if not 'rsvd_0based' in board_conf:
     # FIXME: This should default to False for some future chip
     board_conf['rsvd_0based'] = True
+if 'csv' in args:
+    board_conf['filename'] = args.csv
+if 'rsvd_0based' in args:
+    board_conf['rsvd_0based'] = args.rsvd_0based
+if dbg: print(board_conf)
 
 soc = tegra_pmx_soc_parser.load_soc('tegra124')
 
