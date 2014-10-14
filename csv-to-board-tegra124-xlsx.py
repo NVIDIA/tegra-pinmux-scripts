@@ -42,15 +42,26 @@ if args.debug:
 if dbg: print(args)
 
 supported_boards = {
-    'jetson-tk1': 'T124_customer_pinmux_PM375_30Apr2014_v2.csv', # worksheet PM375Beaver_Configuration
-    'norrin': 'PM370_T124_customer_pinmux_1.1.csv', # worksheet Customer_Configuration
-    'venice2': 'Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv', # worksheet Customer_Configuration
+    'jetson-tk1': {
+        # T124_customer_pinmux_PM375_30Apr2014_v2.xlsm worksheet PM375Beaver_Configuration (0-based rsvd)
+        # T124_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd)
+        # Jetson_TK1_customer_pinmux_release.xlsm worksheet Jetson TK1 Configuration (1-based rsvd)
+        'filename': 'csv/jetson-tk1.csv',
+    },
+    'norrin': {
+        # PM370_T124_customer_pinmux_1.1.xlsm worksheet Customer_Configuration (0-based rsvd)
+        'filename': 'nv-internal-data/PM370_T124_customer_pinmux_1.1.csv',
+    },
+    'venice2': {
+        # Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.xlsm worksheet Customer_Configuration (0-based rsvd)
+        'filename': 'nv-internal-data/Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv',
+    },
 }
 
 if not args.board in supported_boards:
     print('ERROR: Unsupported board %s' % args.board, file=sys.stderr)
     sys.exit(1)
-csvfile = os.path.join('nv-internal-data', supported_boards[args.board])
+board_conf = supported_boards[args.board]
 
 soc = tegra_pmx_soc_parser.load_soc('tegra124')
 
@@ -136,7 +147,7 @@ def rcv_sel_munge(d):
 
 found_header = False
 pin_table = []
-with open(csvfile, newline='') as fh:
+with open(board_conf['filename'], newline='') as fh:
     csv = csv.reader(fh)
     lnum = 0
     for row in csv:
