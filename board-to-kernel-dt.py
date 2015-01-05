@@ -56,7 +56,7 @@ for pincfg in board.pincfgs_by_num():
     print('				nvidia,enable-input = <' + mapper_bool(pincfg.e_inp) + '>;')
     if pincfg.gpio_pin.od:
         print('				nvidia,open-drain = <' + mapper_bool(pincfg.od) + '>;')
-    if pincfg.gpio_pin.rcv_sel:
+    if hasattr(pincfg.gpio_pin, 'rcv_sel') and pincfg.gpio_pin.rcv_sel:
         print('				nvidia,rcv-sel = <' + mapper_bool(pincfg.rcv_sel) + '>;')
     print('			};')
 
