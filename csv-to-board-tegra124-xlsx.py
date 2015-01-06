@@ -46,9 +46,8 @@ if dbg: print(args)
 
 supported_boards = {
     'jetson-tk1': {
-        # T124_customer_pinmux_PM375_30Apr2014_v2.xlsm worksheet PM375Beaver_Configuration (0-based rsvd)
-        # T124_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd)
-        # Jetson_TK1_customer_pinmux_release.xlsm worksheet Jetson TK1 Configuration (1-based rsvd)
+        # Jetson_TK1_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd) from:
+        # https://developer.nvidia.com/hardware-design-and-development
         'filename': 'csv/jetson-tk1.csv',
         'rsvd_0based': False,
     },
