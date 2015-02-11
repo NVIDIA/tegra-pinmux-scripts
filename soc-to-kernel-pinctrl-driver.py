@@ -394,7 +394,6 @@ MODULE_DEVICE_TABLE(of, %(soc)s_pinctrl_of_match);
 static struct platform_driver %(soc)s_pinctrl_driver = {
 	.driver = {
 		.name = "%(soc)s-pinctrl",
-		.owner = THIS_MODULE,
 		.of_match_table = %(soc)s_pinctrl_of_match,
 	},
 	.probe = %(soc)s_pinctrl_probe,
