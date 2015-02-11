@@ -116,6 +116,8 @@ if soc.name == 'tegra30':
 else:
     f = soc.drive_groups_by_reg
 for group in f():
+    if group.has_matching_pin:
+        continue
     print('''\
 
 static const unsigned %s_pins[] = {
@@ -155,125 +157,223 @@ static struct tegra_function %s_functions[] = {
 for func in soc.functions_by_alpha():
     print('\tFUNCTION(%s),' % func.name)
 
+drv_pingroup_val = "0x%x" % soc.soc_drv_reg_base
 print('''\
 };
 
-#define DRV_PINGROUP_REG_A		0x868	/* bank 0 */
+#define DRV_PINGROUP_REG_A		%(drv_pingroup_val)s	/* bank 0 */
 #define PINGROUP_REG_A			0x3000	/* bank 1 */
-''', end='')
+''' % globals(), end='')
 
 if len(soc.mipi_pad_ctrl_groups_by_reg()):
     print('#define MIPI_PAD_CTRL_PINGROUP_REG_A	0x820	/* bank 2 */''')
 
 print('''\
 
+#define DRV_PINGROUP_REG(r)		((r) - DRV_PINGROUP_REG_A)
 #define PINGROUP_REG(r)			((r) - PINGROUP_REG_A)
+''', end='')
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('''\
+#define MIPI_PAD_CTRL_PINGROUP_REG_Y(r)	((r) - MIPI_PAD_CTRL_PINGROUP_REG_A)
+''', end='')
+
+print('''\
 
 #define PINGROUP_BIT_Y(b)		(b)
 #define PINGROUP_BIT_N(b)		(-1)
 
 ''', end='')
 
-if soc.has_rcv_sel:
-    print('#define PINGROUP(pg_name, f0, f1, f2, f3, r, od, ior, rcv_sel)		\\')
-    tab = '\t'
+params = ['pg_name', 'f0', 'f1', 'f2', 'f3', 'r']
+if soc.soc_pins_have_od and not soc.soc_pins_all_have_od:
+    params += ['od',]
+if soc.soc_pins_have_ior:
+    params += ['ior',]
+if soc.soc_pins_have_rcv_sel:
+    params += ['rcv_sel',]
+if soc.soc_pins_have_hsm:
+    params += ['hsm',]
+if soc.soc_pins_have_schmitt and not soc.soc_pins_all_have_schmitt:
+    params += ['schmitt',]
+if soc.soc_pins_have_drvtype:
+    params += ['drvtype',]
+if soc.soc_pins_have_e_io_hv:
+    params += ['e_io_hv',]
+drive_params = ['drvdn_b', 'drvdn_w', 'drvup_b', 'drvup_w', 'slwr_b', 'slwr_w', 'slwf_b', 'slwf_w']
+if soc.soc_combine_pin_drvgroup:
+    params += ['rdrv',]
+    params += drive_params
+
+s = gen_wrapped_c_macro_header('PINGROUP', params)
+
+einput_val = str(soc.soc_einput_b)
+
+if soc.soc_pins_have_od:
+    if soc.soc_pins_all_have_od:
+        odrain_val = str(soc.soc_odrain_b)
+    else:
+        odrain_val = 'PINGROUP_BIT_##od(%s)' % str(soc.soc_odrain_b)
 else:
-    print('#define PINGROUP(pg_name, f0, f1, f2, f3, r, od, ior)		\\')
-    tab = ''
+        odrain_val = '-1'
+
+if soc.soc_pins_have_ior:
+    ioreset_val = 'PINGROUP_BIT_##ior(8)'
+else:
+    ioreset_val = '-1'
+
+# rcv_sel and e_io_hv are different names for essentially the same thing.
+# Re-use the field to save space
+if soc.soc_pins_have_rcv_sel:
+    rcv_sel_val = 'PINGROUP_BIT_##rcv_sel(9),'
+elif soc.soc_pins_have_e_io_hv:
+    rcv_sel_val = 'PINGROUP_BIT_##e_io_hv(10),'
+else:
+    rcv_sel_val = '-1,'
+
+s += '''\
+	{
+		.name = #pg_name,
+		.pins = pg_name##_pins,
+		.npins = ARRAY_SIZE(pg_name##_pins),
+		.funcs = {
+			TEGRA_MUX_##f0,
+			TEGRA_MUX_##f1,
+			TEGRA_MUX_##f2,
+			TEGRA_MUX_##f3,
+		},
+		.mux_reg = PINGROUP_REG(r),
+		.mux_bank = 1,
+		.mux_bit = 0,
+		.pupd_reg = PINGROUP_REG(r),
+		.pupd_bank = 1,
+		.pupd_bit = 2,
+		.tri_reg = PINGROUP_REG(r),
+		.tri_bank = 1,
+		.tri_bit = 4,
+		.einput_bit = %(einput_val)s,
+		.odrain_bit = %(odrain_val)s,
+		.lock_bit = 7,
+		.ioreset_bit = %(ioreset_val)s,
+		.rcv_sel_bit = %(rcv_sel_val)s
+''' % globals()
+
+if soc.soc_pins_have_hsm:
+    s += '''\
+		.hsm_bit = PINGROUP_BIT_##hsm(9),
+'''
+
+if soc.soc_pins_have_schmitt:
+    if soc.soc_pins_all_have_schmitt:
+        s += '''\
+		.schmitt_bit = 12,
+'''
+    else:
+        s += '''\
+		.schmitt_bit = PINGROUP_BIT_##schmitt(12),
+'''
+
+if soc.soc_pins_have_drvtype:
+    s += '''\
+		.drvtype_bit = PINGROUP_BIT_##drvtype(13),
+'''
+
+if soc.soc_combine_pin_drvgroup:
+    # FIXME: if !soc.soc_pins_have_hsm, then we should include hsm_bit
+    # here. Same for schmitt and drvtype. However, no SoCs have that
+    # combination at present, so I don't feel like cluttering the code.
+    # We should also handle !soc_drvgroups_have_lpmd.
+    s += '''\
+		.drv_reg = DRV_PINGROUP_REG(rdrv),
+		.drv_bank = 0,
+		.lpmd_bit = -1,
+		.drvdn_bit = drvdn_b,
+		.drvdn_width = drvdn_w,
+		.drvup_bit = drvup_b,
+		.drvup_width = drvup_w,
+		.slwr_bit = slwr_b,
+		.slwr_width = slwr_w,
+		.slwf_bit = slwf_b,
+		.slwf_width = slwf_w,
+'''
+else:
+    s += '''\
+		.drv_reg = -1,
+'''
+
+s = append_aligned_tabs_indent_with_tabs(s)
+print(s)
 
 print('''\
-	{							%(tab)s\\
-		.name = #pg_name,				%(tab)s\\
-		.pins = pg_name##_pins,				%(tab)s\\
-		.npins = ARRAY_SIZE(pg_name##_pins),		%(tab)s\\
-		.funcs = {					%(tab)s\\
-			TEGRA_MUX_##f0,				%(tab)s\\
-			TEGRA_MUX_##f1,				%(tab)s\\
-			TEGRA_MUX_##f2,				%(tab)s\\
-			TEGRA_MUX_##f3,				%(tab)s\\
-		},						%(tab)s\\
-		.mux_reg = PINGROUP_REG(r),			%(tab)s\\
-		.mux_bank = 1,					%(tab)s\\
-		.mux_bit = 0,					%(tab)s\\
-		.pupd_reg = PINGROUP_REG(r),			%(tab)s\\
-		.pupd_bank = 1,					%(tab)s\\
-		.pupd_bit = 2,					%(tab)s\\
-		.tri_reg = PINGROUP_REG(r),			%(tab)s\\
-		.tri_bank = 1,					%(tab)s\\
-		.tri_bit = 4,					%(tab)s\\
-		.einput_bit = PINGROUP_BIT_Y(5),		%(tab)s\\
-		.odrain_bit = PINGROUP_BIT_##od(6),		%(tab)s\\
-		.lock_bit = PINGROUP_BIT_Y(7),			%(tab)s\\
-		.ioreset_bit = PINGROUP_BIT_##ior(8),		%(tab)s\\
-''' % {'tab': tab}, end='')
-
-if soc.has_rcv_sel:
-    print('''\
-		.rcv_sel_bit = PINGROUP_BIT_##rcv_sel(9),	%(tab)s\\
-''' % {'tab': tab}, end='')
-else:
-    print('''\
-		.rcv_sel_bit = -1,				%(tab)s\\
-''' % {'tab': tab}, end='')
-
-print('''\
-		.drv_reg = -1,					%(tab)s\\
 	}
 
-#define DRV_PINGROUP_REG(r)		((r) - DRV_PINGROUP_REG_A)
-
-''' % {'tab': tab}, end='')
-
-if soc.has_drvtype:
-    print('''\
-#define DRV_PINGROUP(pg_name, r, hsm_b, schmitt_b, lpmd_b,		\\
-		     drvdn_b, drvdn_w, drvup_b, drvup_w,		\\
-		     slwr_b, slwr_w, slwf_b, slwf_w,			\\
-		     drvtype)						\\
-''', end='')
-else:
-    print('''\
-#define DRV_PINGROUP(pg_name, r, hsm_b, schmitt_b, lpmd_b,	\\
-		     drvdn_b, drvdn_w, drvup_b, drvup_w,	\\
-		     slwr_b, slwr_w, slwf_b, slwf_w)		\\
 ''', end='')
 
-print('''\
-	{							%(tab)s\\
-		.name = "drive_" #pg_name,			%(tab)s\\
-		.pins = drive_##pg_name##_pins,			%(tab)s\\
-		.npins = ARRAY_SIZE(drive_##pg_name##_pins),	%(tab)s\\
-		.mux_reg = -1,					%(tab)s\\
-		.pupd_reg = -1,					%(tab)s\\
-		.tri_reg = -1,					%(tab)s\\
-		.einput_bit = -1,				%(tab)s\\
-		.odrain_bit = -1,				%(tab)s\\
-		.lock_bit = -1,					%(tab)s\\
-		.ioreset_bit = -1,				%(tab)s\\
-		.rcv_sel_bit = -1,				%(tab)s\\
-		.drv_reg = DRV_PINGROUP_REG(r),			%(tab)s\\
-		.drv_bank = 0,					%(tab)s\\
-		.hsm_bit = hsm_b,				%(tab)s\\
-		.schmitt_bit = schmitt_b,			%(tab)s\\
-		.lpmd_bit = lpmd_b,				%(tab)s\\
-		.drvdn_bit = drvdn_b,				%(tab)s\\
-		.drvdn_width = drvdn_w,				%(tab)s\\
-		.drvup_bit = drvup_b,				%(tab)s\\
-		.drvup_width = drvup_w,				%(tab)s\\
-		.slwr_bit = slwr_b,				%(tab)s\\
-		.slwr_width = slwr_w,				%(tab)s\\
-		.slwf_bit = slwf_b,				%(tab)s\\
-		.slwf_width = slwf_w,				%(tab)s\\
-''' % {'tab': tab}, end='')
+params = ['pg_name', 'r']
+if soc.soc_drvgroups_have_hsm:
+    params += ['hsm_b',]
+if soc.soc_drvgroups_have_schmitt:
+    params += ['schmitt_b',]
+if soc.soc_drvgroups_have_lpmd:
+    params += ['lpmd_b',]
+params += drive_params
+if soc.soc_drvgroups_have_drvtype:
+    params += ['drvtype',]
 
-if soc.has_drvtype:
-    print('''\
-		.drvtype_bit = PINGROUP_BIT_##drvtype(6),	%(tab)s\\
-''' % {'tab': tab}, end='')
+s = gen_wrapped_c_macro_header('DRV_PINGROUP', params)
+
+if soc.soc_drvgroups_have_hsm:
+    hsm_bit_val = 'hsm_b'
 else:
-    print('''\
-		.drvtype_bit = -1,				%(tab)s\\
-''' % {'tab': tab}, end='')
+    hsm_bit_val = '-1'
+
+if soc.soc_drvgroups_have_schmitt:
+    schmitt_bit_val = 'schmitt_b'
+else:
+    schmitt_bit_val = '-1'
+
+if soc.soc_drvgroups_have_lpmd:
+    lpmd_bit_val = 'lpmd_b'
+else:
+    lpmd_bit_val = '-1'
+
+if soc.soc_drvgroups_have_drvtype:
+    drvtype_bit_val = 'PINGROUP_BIT_##drvtype(6),'
+else:
+    drvtype_bit_val = '-1,'
+
+s += '''\
+	{
+		.name = "drive_" #pg_name,
+		.pins = drive_##pg_name##_pins,
+		.npins = ARRAY_SIZE(drive_##pg_name##_pins),
+		.mux_reg = -1,
+		.pupd_reg = -1,
+		.tri_reg = -1,
+		.einput_bit = -1,
+		.odrain_bit = -1,
+		.lock_bit = -1,
+		.ioreset_bit = -1,
+		.rcv_sel_bit = -1,
+		.drv_reg = DRV_PINGROUP_REG(r),
+		.drv_bank = 0,
+		.hsm_bit = %(hsm_bit_val)s,
+		.schmitt_bit = %(schmitt_bit_val)s,
+		.lpmd_bit = %(lpmd_bit_val)s,
+		.drvdn_bit = drvdn_b,
+		.drvdn_width = drvdn_w,
+		.drvup_bit = drvup_b,
+		.drvup_width = drvup_w,
+		.slwr_bit = slwr_b,
+		.slwr_width = slwr_w,
+		.slwf_bit = slwf_b,
+		.slwf_width = slwf_w,
+		.drvtype_bit = %(drvtype_bit_val)s
+''' % globals()
+
+s = append_aligned_tabs_indent_with_tabs(s)
+print(s)
 
 print('''\
 	}
@@ -282,8 +382,6 @@ print('''\
 
 if len(soc.mipi_pad_ctrl_groups_by_reg()):
     print('''\
-#define MIPI_PAD_CTRL_PINGROUP_REG_Y(r)	((r) - MIPI_PAD_CTRL_PINGROUP_REG_A)
-
 #define MIPI_PAD_CTRL_PINGROUP(pg_name, r, b, f0, f1)			\\
 	{								\\
 		.name = "mipi_pad_ctrl_" #pg_name,			\\
@@ -310,7 +408,6 @@ if len(soc.mipi_pad_ctrl_groups_by_reg()):
 
 ''', end='')
 
-
 print('''\
 static const struct tegra_pingroup %s_groups[] = {
 ''' % soc.name, end='')
@@ -324,7 +421,7 @@ if soc.name == 'tegra30':
     max_f3_len = 12
     yn_width = 1
     col_widths = (max_gpio_pin_len, max_f0_len, max_f1_len, max_f2_len, max_f3_len, 6, yn_width, yn_width)
-    if soc.has_rcv_sel:
+    if soc.soc_pins_have_rcv_sel:
         col_widths += (yn_width,)
     right_justifies = None
 elif soc.name in ('tegra114', 'tegra124'):
@@ -335,16 +432,31 @@ elif soc.name in ('tegra114', 'tegra124'):
     max_f3_len = 11
     yn_width = 2
     col_widths = (max_gpio_pin_len, max_f0_len, max_f1_len, max_f2_len, max_f3_len, 6, yn_width, yn_width)
-    if soc.has_rcv_sel:
+    if soc.soc_pins_have_rcv_sel:
         col_widths += (yn_width,)
     right_justifies = (False, False, False, False, False, False, False, True, True, True)
 else:
     col_widths = None
     right_justifies = None
 
-headings = ('pg_name', 'f0', 'f1', 'f2', 'f3', 'r', 'od', 'ior',)
-if soc.has_rcv_sel:
-    headings += ('rcv_sel',)
+headings = ['pg_name', 'f0', 'f1', 'f2', 'f3', 'r']
+if soc.soc_pins_have_od and not soc.soc_pins_all_have_od:
+    headings += ['od',]
+if soc.soc_pins_have_ior:
+    headings += ['ior',]
+if soc.soc_pins_have_rcv_sel:
+    headings += ['rcv_sel',]
+if soc.soc_pins_have_hsm:
+    headings += ['hsm',]
+if soc.soc_pins_have_schmitt and not soc.soc_pins_all_have_schmitt:
+    headings += ['schmitt',]
+if soc.soc_pins_have_drvtype:
+    headings += ['drvtype',]
+if soc.soc_pins_have_e_io_hv:
+    headings += ['e_io_hv',]
+if soc.soc_combine_pin_drvgroup:
+    headings += ['rdrv',]
+    headings += drive_params
 
 rows = []
 # Do not add any more exceptions here; new SoCs should be formatted correctly
@@ -362,11 +474,46 @@ for pin in f():
         pin.f2.upper(),
         pin.f3.upper(),
         '0x%x' % pin.reg,
-        boolean_to_yn(pin.od),
-        boolean_to_yn(pin.ior),
     )
-    if soc.has_rcv_sel:
+    if soc.soc_pins_have_od and not soc.soc_pins_all_have_od:
+        row += (boolean_to_yn(pin.od),)
+    if soc.soc_pins_have_ior:
+        row += (boolean_to_yn(pin.ior),)
+    if soc.soc_pins_have_rcv_sel:
         row += (boolean_to_yn(pin.rcv_sel),)
+    if soc.soc_pins_have_hsm:
+        row += (boolean_to_yn(pin.hsm),)
+    if soc.soc_pins_have_schmitt and not soc.soc_pins_all_have_schmitt:
+        row += (boolean_to_yn(pin.schmitt),)
+    if soc.soc_pins_have_drvtype:
+        row += (boolean_to_yn(pin.drvtype),)
+    if soc.soc_pins_have_e_io_hv:
+        row += (boolean_to_yn(pin.e_io_hv),)
+    if soc.soc_combine_pin_drvgroup:
+        if pin.per_pin_drive_group:
+            row += (
+                '0x%x' % pin.per_pin_drive_group.reg,
+                repr(pin.per_pin_drive_group.drvdn_b),
+                repr(pin.per_pin_drive_group.drvdn_w),
+                repr(pin.per_pin_drive_group.drvup_b),
+                repr(pin.per_pin_drive_group.drvup_w),
+                repr(pin.per_pin_drive_group.slwr_b),
+                repr(pin.per_pin_drive_group.slwr_w),
+                repr(pin.per_pin_drive_group.slwf_b),
+                repr(pin.per_pin_drive_group.slwf_w),
+            )
+        else:
+            row += (
+                '-1',
+                '-1',
+                '-1',
+                '-1',
+                '-1',
+                '-1',
+                '-1',
+                '-1',
+                '-1',
+            )
     rows.append(row)
 dump_c_table(headings, 'PINGROUP', rows, col_widths=col_widths, right_justifies=right_justifies)
 
@@ -376,8 +523,15 @@ if soc.name != 'tegra30':
 
 max_drvgrp_len = max([len(drvgroup.name) for drvgroup in soc.drive_groups_by_reg()])
 
-print('\t/* pg_name, r, hsm_b, schmitt_b, lpmd_b, drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w', end='')
-if soc.has_drvtype:
+print('\t/* pg_name, r, ', end='')
+if soc.soc_drvgroups_have_hsm:
+    print('hsm_b, ', end='')
+if soc.soc_drvgroups_have_schmitt:
+    print('schmitt_b, ', end='')
+if soc.soc_drvgroups_have_lpmd:
+    print('lpmd_b, ', end='')
+print('drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w', end='')
+if soc.soc_drvgroups_have_drvtype:
     print(', drvtype', end='')
 print(' */')
 
@@ -387,15 +541,27 @@ if soc.name == 'tegra30':
     f = soc.drive_groups_by_alpha
 else:
     f = soc.drive_groups_by_reg
-col_widths = (0, 0, 2, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 2)
-right_justifies = (False, False, True, True, True, True, True, True, True, True, True, True, True, True)
+# Do not add any more exceptions here; new SoCs should be formatted correctly
+if soc.name in ('tegra30', 'tegra114', 'tegra124'):
+    col_widths = (0, 0, 2, 2, 2, 3, 2, 3, 2, 3, 2, 3, 2, 2)
+    right_justifies = (False, False, True, True, True, True, True, True, True, True, True, True, True, True)
+else:
+    col_widths = None
+    right_justifies = None
 for drvgroup in f():
+    if drvgroup.has_matching_pin:
+        continue
     row = (
         drvgroup.name,
         '0x%x' % drvgroup.reg,
-        repr(drvgroup.hsm_b),
-        repr(drvgroup.schmitt_b),
-        repr(drvgroup.lpmd_b),
+    )
+    if soc.soc_drvgroups_have_hsm:
+        row += (repr(drvgroup.hsm_b),)
+    if soc.soc_drvgroups_have_schmitt:
+        row += (repr(drvgroup.schmitt_b),)
+    if soc.soc_drvgroups_have_lpmd:
+        row += (repr(drvgroup.lpmd_b),)
+    row += (
         repr(drvgroup.drvdn_b),
         repr(drvgroup.drvdn_w),
         repr(drvgroup.drvup_b),
@@ -405,7 +571,7 @@ for drvgroup in f():
         repr(drvgroup.slwf_b),
         repr(drvgroup.slwf_w),
     )
-    if soc.has_drvtype:
+    if soc.soc_drvgroups_have_drvtype:
         row += (boolean_to_yn(drvgroup.drvtype),)
     rows.append(row)
 dump_c_table(None, 'DRV_PINGROUP', rows, col_widths=col_widths, right_justifies=right_justifies)
@@ -429,6 +595,9 @@ socvars = {
     'author': soc.kernel_author,
     'soc': soc.name,
     'usoc': soc.titlename,
+    'hsm_in_mux': boolean_to_c_bool(soc.soc_pins_have_hsm),
+    'schmitt_in_mux': boolean_to_c_bool(soc.soc_pins_have_schmitt),
+    'drvtype_in_mux': boolean_to_c_bool(soc.soc_pins_have_drvtype),
 }
 
 print('''\
@@ -442,6 +611,9 @@ static const struct tegra_pinctrl_soc_data %(soc)s_pinctrl = {
 	.nfunctions = ARRAY_SIZE(%(soc)s_functions),
 	.groups = %(soc)s_groups,
 	.ngroups = ARRAY_SIZE(%(soc)s_groups),
+	.hsm_in_mux = %(hsm_in_mux)s,
+	.schmitt_in_mux = %(schmitt_in_mux)s,
+	.drvtype_in_mux = %(drvtype_in_mux)s,
 };
 
 static int %(soc)s_pinctrl_probe(struct platform_device *pdev)

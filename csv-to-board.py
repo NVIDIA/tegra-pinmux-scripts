@@ -36,8 +36,8 @@ parser = argparse.ArgumentParser(description='Create a board config' +
     'from a CSV version of the Venice2 pinmux spreadsheet')
 parser.add_argument('--debug', action='store_true', help='Turn on debugging prints')
 parser.add_argument('--csv', default=argparse.SUPPRESS, help='CSV file to parse')
-parser.add_argument('--rsvd-0based', action='store_true', dest='rsvd_0based', default=argparse.SUPPRESS, help='Assume 0-based RSVD numbering')
-parser.add_argument('--rsvd-1based', action='store_false', dest='rsvd_0based', default=argparse.SUPPRESS, help='Assume 1-based RSVD numbering')
+parser.add_argument('--csv-rsvd-0based', action='store_true', dest='csv_rsvd_0based', default=argparse.SUPPRESS, help='Assume 0-based RSVD numbering')
+parser.add_argument('--csv-rsvd-1based', action='store_false', dest='csv_rsvd_0based', default=argparse.SUPPRESS, help='Assume 1-based RSVD numbering')
 parser.add_argument('board', help='Board name')
 args = parser.parse_args()
 if args.debug:
@@ -49,15 +49,20 @@ supported_boards = {
         # Jetson_TK1_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd) from:
         # https://developer.nvidia.com/hardware-design-and-development
         'filename': 'csv/jetson-tk1.csv',
-        'rsvd_0based': False,
+        'rsvd_base': 1,
+        'soc': 'tegra124',
     },
     'norrin': {
         # PM370_T124_customer_pinmux_1.1.xlsm worksheet Customer_Configuration (0-based rsvd)
         'filename': 'nv-internal-data/PM370_T124_customer_pinmux_1.1.csv',
+        'rsvd_base': 0,
+        'soc': 'tegra124',
     },
     'venice2': {
         # Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.xlsm worksheet Customer_Configuration (0-based rsvd)
         'filename': 'nv-internal-data/Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv',
+        'rsvd_base': 0,
+        'soc': 'tegra124',
     },
 }
 
@@ -65,16 +70,13 @@ if not args.board in supported_boards:
     print('ERROR: Unsupported board %s' % args.board, file=sys.stderr)
     sys.exit(1)
 board_conf = supported_boards[args.board]
-if not 'rsvd_0based' in board_conf:
-    # FIXME: This should default to False for some future chip
-    board_conf['rsvd_0based'] = True
 if 'csv' in args:
     board_conf['filename'] = args.csv
-if 'rsvd_0based' in args:
-    board_conf['rsvd_0based'] = args.rsvd_0based
+if 'csv_rsvd_0based' in args:
+    board_conf['rsvd_base'] = {True: 0, False: 1}[args.csv_rsvd_0based]
 if dbg: print(board_conf)
 
-soc = tegra_pmx_soc_parser.load_soc('tegra124')
+soc = tegra_pmx_soc_parser.load_soc(board_conf['soc'])
 
 COL_BALL_NAME = 0
 COL_BALL_MID = 1
@@ -109,18 +111,27 @@ col_names = {
     COL_E_INPUT:       'E_Input',
     COL_GPIO_INIT_VAL: 'GPIO Init Value',
     COL_DIRECTION:     'Pin Direction',
-    COL_RCV_SEL:       'High or Normal VIL/VIH',
 }
+
+if soc.soc_pins_have_rcv_sel:
+    col_names[COL_RCV_SEL] = 'High or Normal VIL/VIH'
+
+if soc.soc_pins_have_e_io_hv:
+    col_names[COL_RCV_SEL] = '3.3V Tolerance Enable'
 
 cols = {}
 
 def func_munge(f):
-    if f in ('sdmmc2a', 'sdmmc2b'):
-        return 'sdmmc2'
-    if f in ('ir3_rxd', 'ir3_txd'):
-        return 'irda'
-    if board_conf['rsvd_0based']:
-        return rsvd_0base_to_1base(f)
+    if board_conf['soc'] == 'tegra124':
+        if f in ('sdmmc2a', 'sdmmc2b'):
+            return 'sdmmc2'
+        if f in ('ir3_rxd', 'ir3_txd'):
+            return 'irda'
+    if soc.soc_rsvd_base != board_conf['rsvd_base']:
+        if soc.soc_rsvd_base:
+            return rsvd_0base_to_1base(f)
+        else:
+            raise Exception('CSV 1-based to SoC 0-based not supported')
     return f
 
 def pupd_munge(d):
@@ -156,6 +167,8 @@ def rcv_sel_munge(d):
         '': False,
         'NORMAL': False,
         'HIGH': True,
+        'Disable': False,
+        'Enable': True,
     }[d]
 
 found_header = False
@@ -177,6 +190,8 @@ with open(board_conf['filename'], newline='') as fh:
                 try:
                     cols[colid] = row.index(coltext)
                 except:
+                    if board_conf['soc'] != 'tegra124':
+                        raise
                     if colid != COL_RCV_SEL:
                         print('ERROR: Header column "%s" not found' % coltext, file=sys.stderr)
                         sys.exit(1)
@@ -243,7 +258,7 @@ with open(board_conf['filename'], newline='') as fh:
             print('ERROR: %s: MUX CSV %s not in SOC F0..3 %s' % (ball_name, mux, repr(gpio_pin.funcs)), file=sys.stderr)
             sys.exit(1)
 
-        if ball_name in ('reset_out_n', 'owr', 'hdmi_int', 'ddc_scl', 'ddc_sda'):
+        if (board_conf['soc'] == 'tegra124') and (ball_name in ('reset_out_n', 'owr', 'hdmi_int', 'ddc_scl', 'ddc_sda')):
             # These balls' pad type is always OD, so we don't need to set it
             # FIXME: The SoC data structure should tell us the pad type instead of hard-coding it
             od = False
@@ -251,19 +266,29 @@ with open(board_conf['filename'], newline='') as fh:
         if od and not gpio_pin.od:
             print('WARNING: %s: OD in board file, but pin has no OD' % ball_name, file=sys.stderr)
             od = False
-        if rcv_sel and not gpio_pin.rcv_sel:
-            print('WARNING: %s: RCV_SEL in board file, but pin has no RCV_SEL' % ball_name, file=sys.stderr)
+        pin_has_rcv_sel = False
+        if soc.soc_pins_have_rcv_sel:
+            pin_has_rcv_sel = gpio_pin.rcv_sel
+        if soc.soc_pins_have_e_io_hv:
+            pin_has_rcv_sel = gpio_pin.e_io_hv
+        if rcv_sel and not pin_has_rcv_sel:
+            print('WARNING: %s: RCV_SEL/E_IO_HV in board file, but pin does not support it' % ball_name, file=sys.stderr)
             rcv_sel = False
 
         pin_table.append((repr(gpio_pin.fullname), repr(mux), repr(gpio_init), repr(pupd), repr(tri), repr(e_input), repr(od), repr(rcv_sel)))
 
+headings = ('pin', 'mux', 'gpio_init', 'pull', 'tri', 'e_inp', 'od')
+if soc.soc_pins_have_e_io_hv:
+    headings += ('e_io_hv',)
+if soc.soc_pins_have_rcv_sel:
+    headings += ('rcv_sel',)
+
 cfgfile = os.path.join('configs', args.board + '.board')
 with open(cfgfile, 'wt') as fh:
-    print('soc = \'tegra124\'', file=fh)
+    print('soc = \'%s\'' % board_conf['soc'], file=fh)
     print(file=fh)
     print('pins = (', file=fh)
 
-    headings = ('pin', 'mux', 'gpio_init', 'pull', 'tri', 'e_inp', 'od', 'rcv_sel')
     dump_py_table(headings, pin_table, file=fh)
 
     print(')', file=fh)

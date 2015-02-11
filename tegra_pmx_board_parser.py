@@ -29,8 +29,10 @@ configs_dir = os.path.join(script_dir, 'configs')
 class PinConfig(ReprDictObj):
     def __init__(self, soc, data):
         fields = ('fullname', 'mux', 'gpio_init', 'pull', 'tri', 'e_inp', 'od')
-        if soc.has_rcv_sel:
+        if soc.soc_pins_have_rcv_sel:
             fields += ('rcv_sel', )
+        if soc.soc_pins_have_e_io_hv:
+            fields += ('e_io_hv', )
         for i, field in enumerate(fields):
             self.__setattr__(field, data[i])
         self.gpio_pin = soc.gpio_or_pin_by_fullname(self.fullname)

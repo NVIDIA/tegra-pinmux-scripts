@@ -41,9 +41,9 @@ re_pins_array_start = re.compile('static const struct pinctrl_pin_desc tegra\d+_
 re_pins_array_entry = re.compile('\s+PINCTRL_PIN\(TEGRA_PIN_([A-Z0-9_]+), "([A-Z0-9_ ]+)"\),')
 
 re_group_pins_array_start = re.compile('static const unsigned ([a-z0-9_]+)_pins\[\] = \{')
-re_group_pins_array_entry = re.compile('\s+TEGRA_PIN_([A-Z0-9_]+),')
+re_group_pins_array_entry = re.compile('\s+TEGRA_PIN_([A-Z0-9_]+),?')
 
-re_mux_array_start = re.compile('enum tegra_mux {')
+re_mux_array_start = re.compile('enum tegra_mux(_dt)? {')
 re_mux_array_entry = re.compile('\s+TEGRA_MUX_([A-Z0-9_]+),')
 
 re_groups_array_start = re.compile('static const struct tegra_pingroup (tegra\d+)_groups\[\] = \{')
@@ -57,8 +57,29 @@ functions = []
 soc = None
 module_author = None
 copyright_years = None
-soc_has_rcv_sel = False
-soc_has_drvtype = False
+
+soc_vars = {
+    'soc_pins_have_od': ['tegra30', 'tegra114', 'tegra124', 'tegra210'],
+    'soc_pins_all_have_od': ['tegra210'],
+    'soc_pins_have_ior': ['tegra30', 'tegra114', 'tegra124'],
+    'soc_pins_have_rcv_sel': ['tegra114', 'tegra124'],
+    'soc_pins_have_schmitt': ['tegra210'],
+    'soc_pins_all_have_schmitt': ['tegra210'],
+    'soc_pins_have_hsm': ['tegra210',],
+    'soc_pins_have_drvtype': ['tegra210',],
+    'soc_pins_have_e_io_hv': ['tegra210',],
+    'soc_drvgroups_have_hsm': ['tegra30', 'tegra114', 'tegra124'],
+    'soc_drvgroups_have_schmitt': ['tegra30', 'tegra114', 'tegra124'],
+    'soc_drvgroups_have_lpmd': ['tegra30', 'tegra114', 'tegra124'],
+    'soc_drvgroups_have_drvtype': ['tegra114', 'tegra124'],
+}
+
+def set_soc(new_soc):
+    global soc
+    soc = new_soc
+
+    for var, socs in soc_vars.items():
+        globals()[var] = (soc in socs)
 
 state = None
 re_state_end = None
@@ -109,7 +130,36 @@ def state_groups_array(l):
     m = re_groups_array_group_entry.match(l)
     if m:
         args = re.split('\s*,\s*', m.group(1))
-        (group, f0, f1, f2, f3, reg, od, ior) = args[0:8]
+        (group, f0, f1, f2, f3, reg) = args[0:6]
+        argbase = 6
+        if soc_pins_have_od and ((not soc_pins_all_have_od) or (soc == 'tegra210')):
+            od = args[argbase]
+            argbase += 1
+            if soc == 'tegra210':
+                if od != 'Y':
+                    raise Exception('od not not expected value for ' + group)
+        if soc_pins_have_ior:
+            ior = args[argbase]
+            argbase += 1
+        if soc_pins_have_rcv_sel:
+            rcv_sel = args[argbase]
+            argbase += 1
+        if soc_pins_have_schmitt and ((not soc_pins_all_have_schmitt) or (soc == 'tegra210')):
+            schmitt = args[argbase]
+            argbase += 1
+            if soc == 'tegra210':
+                if schmitt != '12':
+                    raise Exception('drvtype not expected value for ' + group)
+        if soc_pins_have_hsm:
+            hsm = args[argbase]
+            argbase += 1
+        if soc_pins_have_drvtype:
+            drvtype = args[argbase]
+            argbase += 1
+        if soc_pins_have_e_io_hv:
+            e_io_hv = args[argbase]
+            argbase += 1
+
         group = group.lower()
         f0 = f0.lower()
         f1 = f1.lower()
@@ -122,33 +172,60 @@ def state_groups_array(l):
                 raise Exception('invalid function', f)
         reg = int(reg, 0)
         od = yn_to_boolean(od)
-        ior = yn_to_boolean(ior)
         entry = {
             'is_drive': False,
             'funcs': (f0, f1, f2, f3),
             'reg': reg,
-            'od': od,
-            'ior': ior,
         }
-        if len(args) > 8:
-            global soc_has_rcv_sel
-            soc_has_rcv_sel = True
-            rcv_sel = yn_to_boolean(args[8])
+        if soc_pins_have_od and not soc_pins_all_have_od:
+            od = yn_to_boolean(od)
+            entry['od'] = od
+        if soc_pins_have_ior:
+            ior = yn_to_boolean(ior)
+            entry['ior'] = ior
+        if soc_pins_have_rcv_sel:
+            rcv_sel = yn_to_boolean(rcv_sel)
             entry['rcv_sel'] = rcv_sel
+        if soc_pins_have_schmitt and not soc_pins_all_have_schmitt:
+            schmitt_b = int(schmitt_b)
+            entry['schmitt_b'] = schmitt_b
+        if soc_pins_have_hsm:
+            hsm = (hsm != '-1')
+            entry['hsm'] = hsm
+        if soc_pins_have_drvtype:
+            drvtype = yn_to_boolean(drvtype)
+            entry['drvtype'] = drvtype
+        if soc_pins_have_e_io_hv:
+            e_io_hv = yn_to_boolean(e_io_hv)
+            entry['e_io_hv'] = e_io_hv
         if dbg: print('group entry:', repr(entry))
         groups[group].update(entry)
         return
     m = re_groups_array_drvgroup_entry.match(l)
     if m:
         args = re.split('\s*,\s*', m.group(1))
-        (group, reg, hsm_b, schmitt_b, lpmd_b, drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w) = args[0:13]
+
+        (group, reg) = args[0:2]
+        argbase = 2
+        if soc_drvgroups_have_hsm:
+            hsm_b = args[argbase]
+            argbase += 1
+        if soc_drvgroups_have_schmitt:
+            schmitt_b = args[argbase]
+            argbase += 1
+        if soc_drvgroups_have_lpmd:
+            lpmd_b = args[argbase]
+            argbase += 1
+        (drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w) = args[argbase:(argbase + 8)]
+        argbase += 8
+        if soc_drvgroups_have_drvtype:
+            drvtype = args[argbase]
+            argbase += 1
+
         group = 'drive_' + group
         if not group in groups:
             raise Exception('invalid group', group)
         reg = int(reg, 0)
-        hsm_b = int(hsm_b, 0)
-        schmitt_b = int(schmitt_b, 0)
-        lpmd_b = int(lpmd_b, 0)
         drvdn_b = int(drvdn_b, 0)
         drvdn_w = int(drvdn_w, 0)
         drvup_b = int(drvup_b, 0)
@@ -160,9 +237,6 @@ def state_groups_array(l):
         entry = {
             'is_drive': True,
             'reg': reg,
-            'hsm_b': hsm_b,
-            'schmitt_b': schmitt_b,
-            'lpmd_b': lpmd_b,
             'drvdn_b': drvdn_b,
             'drvdn_w': drvdn_w,
             'drvup_b': drvup_b,
@@ -172,10 +246,17 @@ def state_groups_array(l):
             'slwf_b': slwf_b,
             'slwf_w': slwf_w,
         }
-        if len(args) > 13:
-            global soc_has_drvtype
-            soc_has_drvtype = True
-            drvtype = yn_to_boolean(args[13])
+        if soc_drvgroups_have_hsm:
+            hsm_b = int(hsm_b, 0)
+            entry['hsm_b'] = hsm_b
+        if soc_drvgroups_have_schmitt:
+            schmitt_b = int(schmitt_b, 0)
+            entry['schmitt_b'] = schmitt_b
+        if soc_drvgroups_have_lpmd:
+            lpmd_b = int(lpmd_b, 0)
+            entry['lpmd_b'] = lpmd_b
+        if soc_drvgroups_have_drvtype:
+            drvtype = yn_to_boolean(drvtype)
             entry['drvtype'] = drvtype
         if dbg: print('group entry:', repr(entry))
         groups[group].update(entry)
@@ -185,7 +266,6 @@ def state_groups_array(l):
 def state_global(l):
     global num_pin_gpios
     global state_group
-    global soc
     global copyright_years
     global module_author
 
@@ -209,8 +289,8 @@ def state_global(l):
 
     m = re_groups_array_start.match(l)
     if m:
-        soc = m.group(1)
-        if dbg: print('groups array (soc %s):'% soc)
+        set_soc(m.group(1))
+        if dbg: print('groups array (soc %s):' % soc)
         set_state(state_groups_array, re_close_brace)
         return
 
@@ -315,19 +395,30 @@ def main():
 
     print('kernel_copyright_years =', repr(copyright_years))
     print('kernel_author =', repr(module_author))
-    if not soc_has_rcv_sel:
-        print('has_rcv_sel =', repr(soc_has_rcv_sel))
-    if not soc_has_drvtype:
-        print('has_drvtype =', repr(soc_has_drvtype))
+    print()
+    for var in sorted(soc_vars.keys()):
+        print('%s = %s' % (var, repr(globals()[var])))
     print()
 
     def dump_pins(dump_gpios):
         headings = ('name',)
         if dump_gpios:
             headings += ('gpio',)
-        headings += ('reg', 'f0', 'f1', 'f2', 'f3', 'od', 'ior')
-        if soc_has_rcv_sel:
+        headings += ('reg', 'f0', 'f1', 'f2', 'f3')
+        if soc_pins_have_od and not soc_pins_all_have_od:
+            headings += ('od',)
+        if soc_pins_have_ior:
+            headings += ('ior',)
+        if soc_pins_have_rcv_sel:
             headings += ('rcv_sel',)
+        if soc_pins_have_schmitt and not soc_pins_all_have_schmitt:
+            headings += ('schmitt_b',)
+        if soc_pins_have_hsm:
+            headings += ('hsm',)
+        if soc_pins_have_drvtype:
+            headings += ('drvtype',)
+        if soc_pins_have_e_io_hv:
+            headings += ('e_io_hv',)
 
         rows = []
         for pin in pins:
@@ -355,10 +446,21 @@ def main():
                 row += ('0x%x' % g['reg'],)
                 for func in g['funcs']:
                     row += (repr(func),)
-                row += (repr(g['od']), repr(g['ior']))
-                if soc_has_rcv_sel:
-                    row += (repr(g['rcv_sel']),)
 
+                if soc_pins_have_od and not soc_pins_all_have_od:
+                    row += (repr(g['od']),)
+                if soc_pins_have_ior:
+                    row += (repr(g['ior']),)
+                if soc_pins_have_rcv_sel:
+                    row += (repr(g['rcv_sel']),)
+                if soc_pins_have_schmitt and not soc_pins_all_have_schmitt:
+                    row += (repr(g['schmitt_b']),)
+                if soc_pins_have_hsm:
+                    row += (repr(g['hsm']),)
+                if soc_pins_have_drvtype:
+                    row += (repr(g['drvtype']),)
+                if soc_pins_have_e_io_hv:
+                    row += (repr(g['e_io_hv']),)
             rows.append(row)
 
         dump_py_table(headings, rows)
@@ -372,10 +474,17 @@ def main():
     print(')')
     print()
     print('drive_groups = (')
-    print('    #name, r, hsm_b, schmitt_b, lpmd_b, drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w', end='')
-    if soc_has_drvtype:
-        print(', drvtype', end='')
-    print()
+    heading = '    #name, r'
+    if soc_drvgroups_have_hsm:
+        heading += ', hsm_b'
+    if soc_drvgroups_have_schmitt:
+        heading += ', schmitt_b'
+    if soc_drvgroups_have_lpmd:
+        heading += ', lpmd_b'
+    heading += ', drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w'
+    if soc_drvgroups_have_drvtype:
+        heading += ', drvtype'
+    print(heading)
     rows = []
     for group in groups:
         g = groups[group]
@@ -384,9 +493,14 @@ def main():
         row = (
             repr(group[6:]),
             '0x%x' % g['reg'],
-            repr(g['hsm_b']),
-            repr(g['schmitt_b']),
-            repr(g['lpmd_b']),
+        )
+        if soc_drvgroups_have_hsm:
+            row += (repr(g['hsm_b']),)
+        if soc_drvgroups_have_schmitt:
+            row += (repr(g['schmitt_b']),)
+        if soc_drvgroups_have_lpmd:
+            row += (repr(g['lpmd_b']),)
+        row += (
             repr(g['drvdn_b']),
             repr(g['drvdn_w']),
             repr(g['drvup_b']),
@@ -396,7 +510,7 @@ def main():
             repr(g['slwf_b']),
             repr(g['slwf_w']),
         )
-        if soc_has_drvtype:
+        if soc_drvgroups_have_drvtype:
             row += (repr(g['drvtype']),)
         rows.append(row)
     dump_py_table(None, rows)

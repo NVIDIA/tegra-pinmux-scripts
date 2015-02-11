@@ -2,8 +2,25 @@ kernel_copyright_years = '2011-2012'
 kernel_author = 'Stephen Warren <swarren@nvidia.com>'
 uboot_copyright_years = '2010-2014'
 
-has_rcv_sel = False
-has_drvtype = False
+soc_has_io_clamping = False
+soc_combine_pin_drvgroup = False
+soc_rsvd_base = 1
+soc_drvgroups_have_drvtype = False
+soc_drvgroups_have_hsm = True
+soc_drvgroups_have_lpmd = True
+soc_drvgroups_have_schmitt = True
+soc_pins_all_have_od = False
+soc_pins_all_have_schmitt = False
+soc_pins_have_drvtype = False
+soc_pins_have_e_io_hv = False
+soc_pins_have_hsm = False
+soc_pins_have_ior = True
+soc_pins_have_od = True
+soc_pins_have_rcv_sel = False
+soc_pins_have_schmitt = False
+soc_drv_reg_base = 0x868
+soc_einput_b = 5
+soc_odrain_b = 6
 
 gpios = (
     #name,              gpio,  reg,    f0,            f1,         f2,         f3,         od,    ior

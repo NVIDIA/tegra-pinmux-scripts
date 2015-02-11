@@ -26,7 +26,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 configs_dir = os.path.join(script_dir, 'configs')
 
 class PinBase(ReprDictObj):
-    def __init__(self, has_rcv_sel, signal, gpio, num, data):
+    def __init__(self, soc, signal, gpio, num, data):
         self.signal = signal
         self.gpio = gpio
         self.num = num
@@ -45,12 +45,32 @@ class PinBase(ReprDictObj):
         if not data:
             self.reg = None
             return
-        fields = ('reg', 'f0', 'f1', 'f2', 'f3', 'od', 'ior')
-        if has_rcv_sel:
+        fields = ('reg', 'f0', 'f1', 'f2', 'f3',)
+        if soc.soc_pins_all_have_od:
+            self.od = True
+        elif soc.soc_pins_have_od:
+            fields += ('od',)
+        if soc.soc_pins_have_ior:
+            fields += ('ior',)
+        if soc.soc_pins_have_rcv_sel:
             fields += ('rcv_sel', )
+        if soc.soc_pins_have_hsm:
+            fields += ('hsm', )
+        if soc.soc_pins_all_have_schmitt:
+            self.schmitt = True
+        elif soc.soc_pins_have_schmitt:
+            fields += ('schmitt', )
+        if soc.soc_pins_have_drvtype:
+            fields += ('drvtype', )
+        if soc.soc_pins_have_e_io_hv:
+            fields += ('e_io_hv', )
         for i, field in enumerate(fields):
             self.__setattr__(field, data[i])
         self.funcs = (self.f0, self.f1, self.f2, self.f3)
+        self.per_pin_drive_group = None
+
+    def set_per_pin_drive_group(self, g):
+        self.per_pin_drive_group = g
 
     def sort_by_num_key(self):
         return (self.__class__ == Pin, self.num)
@@ -65,28 +85,42 @@ def _gpio_number(gpion):
     return (bank * 8) + index
 
 class Gpio(PinBase):
-    def __init__(self, data, has_rcv_sel):
+    def __init__(self, soc, data):
         num = _gpio_number(data[1])
-        PinBase.__init__(self, has_rcv_sel, data[0], data[1], num, data[2:])
+        PinBase.__init__(self, soc, data[0], data[1], num, data[2:])
 
 class Pin(PinBase):
-    def __init__(self, num, data, has_rcv_sel):
-        PinBase.__init__(self, has_rcv_sel, data[0], '', num, data[1:])
+    def __init__(self, soc, num, data):
+        PinBase.__init__(self, soc, data[0], '', num, data[1:])
 
 class DriveGroup(ReprDictObj):
-    def __init__(self, data, gpios_pins, has_drvtype):
-        fields = ('name', 'reg', 'hsm_b', 'schmitt_b', 'lpmd_b', 'drvdn_b',
-                'drvdn_w', 'drvup_b', 'drvup_w', 'slwr_b', 'slwr_w', 'slwf_b',
-                'slwf_w')
-        if has_drvtype:
+    def __init__(self, soc, data, gpios_pins):
+        fields = ('name', 'reg', )
+        if soc.soc_drvgroups_have_hsm:
+            fields += ('hsm_b',)
+        if soc.soc_drvgroups_have_schmitt:
+            fields += ('schmitt_b',)
+        if soc.soc_drvgroups_have_lpmd:
+            fields += ('lpmd_b',)
+        fields += ('drvdn_b', 'drvdn_w', 'drvup_b', 'drvup_w', 'slwr_b',
+            'slwr_w', 'slwf_b', 'slwf_w')
+        if soc.soc_drvgroups_have_drvtype:
             fields += ('drvtype', )
         for i, field in enumerate(fields):
             self.__setattr__(field, data[i])
         self.gpios_pins = gpios_pins
         self.fullname = 'drive_' + self.name
+        self.has_matching_pin = (
+            soc.soc_combine_pin_drvgroup and
+            (len(gpios_pins) == 1) and
+            (gpios_pins[0].shortname == self.name)
+        )
+        if self.has_matching_pin:
+            gpios_pins[0].set_per_pin_drive_group(self)
+
 
 class MipiPadCtrlGroup(ReprDictObj):
-    def __init__(self, data, gpios_pins):
+    def __init__(self, soc, data, gpios_pins):
         fields = ('name', 'reg', 'bit', 'f0', 'f1')
         for i, field in enumerate(fields):
             self.__setattr__(field, data[i])
@@ -107,23 +141,43 @@ class Soc(TopLevelParsedObj):
             ('kernel_copyright_years', 2014),
             ('kernel_author', 'NVIDIA'),
             ('uboot_copyright_years', 2014),
-            ('has_rcv_sel', True),
-            ('has_drvtype', True),
+            ('soc_has_io_clamping', None),
+            ('soc_combine_pin_drvgroup', None),
+            ('soc_rsvd_base', None),
+            ('soc_drvgroups_have_drvtype', None),
+            ('soc_drvgroups_have_hsm', None),
+            ('soc_drvgroups_have_lpmd', None),
+            ('soc_drvgroups_have_schmitt', None),
+            ('soc_pins_all_have_od', None),
+            ('soc_pins_all_have_schmitt', None),
+            ('soc_pins_have_drvtype', None),
+            ('soc_pins_have_e_io_hv', None),
+            ('soc_pins_have_hsm', None),
+            ('soc_pins_have_ior', None),
+            ('soc_pins_have_od', None),
+            ('soc_pins_have_rcv_sel', None),
+            ('soc_pins_have_schmitt', None),
+            ('soc_drv_reg_base', None),
+            ('soc_einput_b', None),
+            ('soc_odrain_b', None),
         )
         TopLevelParsedObj.__init__(self, name, copy_attrs, data)
 
-        gpios_pins_by_name = {}
+        gpios_pins_by_fullname = {}
+        gpios_pins_by_shortname = {}
 
         self._gpios = []
         for gpiodata in data['gpios']:
-            gpio = Gpio(gpiodata, self.has_rcv_sel)
-            gpios_pins_by_name[gpio.fullname] = gpio
+            gpio = Gpio(self, gpiodata)
+            gpios_pins_by_fullname[gpio.fullname] = gpio
+            gpios_pins_by_shortname[gpio.shortname] = gpio
             self._gpios.append(gpio)
 
         self._pins = []
         for num, pindata in enumerate(data['pins']):
-            pin = Pin(num, pindata, self.has_rcv_sel)
-            gpios_pins_by_name[pin.fullname] = pin
+            pin = Pin(self, num, pindata)
+            gpios_pins_by_fullname[pin.fullname] = pin
+            gpios_pins_by_shortname[pin.shortname] = pin
             self._pins.append(pin)
 
         self._drive_groups = []
@@ -131,16 +185,16 @@ class Soc(TopLevelParsedObj):
             names = data['drive_group_pins'][drive_group[0]]
             gpios_pins = []
             for name in names:
-                gpios_pins.append(gpios_pins_by_name[name])
-            self._drive_groups.append(DriveGroup(drive_group, gpios_pins, self.has_drvtype))
+                gpios_pins.append(gpios_pins_by_fullname[name])
+            self._drive_groups.append(DriveGroup(self, drive_group, gpios_pins))
 
         self._mipi_pad_ctrl_groups = []
         for group in data.get('mipi_pad_ctrl_groups', []):
             names = data['mipi_pad_ctrl_group_pins'][group[0]]
             gpios_pins = []
             for name in names:
-                gpios_pins.append(gpios_pins_by_name[name])
-            self._mipi_pad_ctrl_groups.append(MipiPadCtrlGroup(group, gpios_pins))
+                gpios_pins.append(gpios_pins_by_fullname[name])
+            self._mipi_pad_ctrl_groups.append(MipiPadCtrlGroup(self, group, gpios_pins))
 
         self._generate_derived_data()
 

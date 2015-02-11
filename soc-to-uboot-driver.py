@@ -73,10 +73,10 @@ print('''\
 enum pmux_drvgrp {
 ''', file=f, end='')
 
-last_reg = 0x868 - 4
+last_reg = soc.soc_drv_reg_base - 4
 for group in soc.drive_groups_by_reg():
     if group.reg != last_reg + 4:
-        eqs = ' = (0x%x / 4)' % (group.reg - 0x868)
+        eqs = ' = (0x%x / 4)' % (group.reg - soc.soc_drv_reg_base)
     else:
         eqs = ''
     print('\tPMUX_DRVGRP_%s%s,' % (group.fullname.upper()[6:], eqs), file=f)
@@ -97,21 +97,46 @@ for func in soc.functions_by_alpha():
 
 
 print('''\
-	PMUX_FUNC_RSVD1,
-	PMUX_FUNC_RSVD2,
-	PMUX_FUNC_RSVD3,
-	PMUX_FUNC_RSVD4,
+	PMUX_FUNC_RSVD%d,
+	PMUX_FUNC_RSVD%d,
+	PMUX_FUNC_RSVD%d,
+	PMUX_FUNC_RSVD%d,
 	PMUX_FUNC_COUNT,
 };
 
-#define TEGRA_PMX_HAS_PIN_IO_BIT_ETC
-''', file=f, end='')
+''' % tuple(soc.soc_rsvd_base + i for i in range(4)), file=f, end='')
 
-if soc.has_rcv_sel:
-    print('#define TEGRA_PMX_HAS_RCV_SEL', file=f)
+print('#define TEGRA_PMX_SOC_DRV_GROUP_BASE_REG 0x%x' % soc.soc_drv_reg_base, file=f)
+if soc.soc_has_io_clamping:
+    print('#define TEGRA_PMX_SOC_HAS_IO_CLAMPING', file=f)
+
+print('#define TEGRA_PMX_SOC_HAS_DRVGRPS', file=f)
+
+if soc.soc_drvgroups_have_lpmd:
+    print('#define TEGRA_PMX_GRPS_HAVE_LPMD', file=f)
+
+if soc.soc_drvgroups_have_schmitt:
+    print('#define TEGRA_PMX_GRPS_HAVE_SCHMT', file=f)
+
+if soc.soc_drvgroups_have_hsm:
+    print('#define TEGRA_PMX_GRPS_HAVE_HSM', file=f)
+
+print('#define TEGRA_PMX_PINS_HAVE_E_INPUT', file=f)
+print('#define TEGRA_PMX_PINS_HAVE_LOCK', file=f)
+
+if soc.soc_pins_have_od:
+    print('#define TEGRA_PMX_PINS_HAVE_OD', file=f)
+
+if soc.soc_pins_have_ior:
+    print('#define TEGRA_PMX_PINS_HAVE_IO_RESET', file=f)
+
+if soc.soc_pins_have_rcv_sel:
+    print('#define TEGRA_PMX_PINS_HAVE_RCV_SEL', file=f)
+
+if soc.soc_pins_have_e_io_hv:
+    print('#define TEGRA_PMX_PINS_HAVE_E_IO_HV', file=f)
 
 print('''\
-#define TEGRA_PMX_HAS_DRVGRPS
 #include <asm/arch-tegra/pinmux.h>
 
 #endif /* _%s_PINMUX_H_ */

@@ -1,0 +1,804 @@
+kernel_copyright_years = '2015'
+kernel_author = 'NVIDIA'
+uboot_copyright_years = '2015'
+
+soc_has_io_clamping = True
+soc_combine_pin_drvgroup = True
+soc_rsvd_base = 0
+soc_drvgroups_have_drvtype = False
+soc_drvgroups_have_hsm = False
+soc_drvgroups_have_lpmd = False
+soc_drvgroups_have_schmitt = False
+soc_pins_all_have_od = True
+soc_pins_all_have_schmitt = True
+soc_pins_have_drvtype = True
+soc_pins_have_e_io_hv = True
+soc_pins_have_hsm = True
+soc_pins_have_ior = False
+soc_pins_have_od = True
+soc_pins_have_rcv_sel = False
+soc_pins_have_schmitt = True
+soc_drv_reg_base = 0x8d4
+soc_einput_b = 6
+soc_odrain_b = 11
+
+gpios = (
+    #name,              gpio,  reg,    f0,           f1,       f2,      f3,      hsm,   drvtype, e_io_hv
+    ('pex_l0_rst_n',    'a0',  0x3038, 'pe0',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('pex_l0_clkreq_n', 'a1',  0x303c, 'pe0',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('pex_wake_n',      'a2',  0x3040, 'pe',         'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('pex_l1_rst_n',    'a3',  0x3044, 'pe1',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('pex_l1_clkreq_n', 'a4',  0x3048, 'pe1',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('sata_led_active', 'a5',  0x304c, 'sata',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'a6',  0x3244, 'sata',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dap1_fs',         'b0',  0x3124, 'i2s1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('dap1_din',        'b1',  0x3128, 'i2s1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('dap1_dout',       'b2',  0x312c, 'i2s1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('dap1_sclk',       'b3',  0x3130, 'i2s1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi2_mosi',       'b4',  0x3064, 'spi2',       'dtv',    'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi2_miso',       'b5',  0x3068, 'spi2',       'dtv',    'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi2_sck',        'b6',  0x306c, 'spi2',       'dtv',    'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi2_cs0',        'b7',  0x3070, 'spi2',       'dtv',    'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi1_mosi',       'c0',  0x3050, 'spi1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi1_miso',       'c1',  0x3054, 'spi1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi1_sck',        'c2',  0x3058, 'spi1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi1_cs0',        'c3',  0x305c, 'spi1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi1_cs1',        'c4',  0x3060, 'spi1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi4_sck',        'c5',  0x3080, 'spi4',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi4_cs0',        'c6',  0x3084, 'spi4',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi4_mosi',       'c7',  0x3078, 'spi4',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('spi4_miso',       'd0',  0x307c, 'spi4',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('uart3_tx',        'd1',  0x3104, 'uartc',      'spi4',   'rsvd2', 'rsvd3', False, False,   False),
+    ('uart3_rx',        'd2',  0x3108, 'uartc',      'spi4',   'rsvd2', 'rsvd3', False, False,   False),
+    ('uart3_rts',       'd3',  0x310c, 'uartc',      'spi4',   'rsvd2', 'rsvd3', False, False,   False),
+    ('uart3_cts',       'd4',  0x3110, 'uartc',      'spi4',   'rsvd2', 'rsvd3', False, False,   False),
+    ('dmic1_clk',       'e0',  0x30a4, 'dmic1',      'i2s3',   'rsvd2', 'rsvd3', False, False,   False),
+    ('dmic1_dat',       'e1',  0x30a8, 'dmic1',      'i2s3',   'rsvd2', 'rsvd3', False, False,   False),
+    ('dmic2_clk',       'e2',  0x30ac, 'dmic2',      'i2s3',   'rsvd2', 'rsvd3', False, False,   False),
+    ('dmic2_dat',       'e3',  0x30b0, 'dmic2',      'i2s3',   'rsvd2', 'rsvd3', False, False,   False),
+    ('dmic3_clk',       'e4',  0x30b4, 'dmic3',      'i2s5a',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dmic3_dat',       'e5',  0x30b8, 'dmic3',      'i2s5a',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'e6',  0x3248, 'rsvd0',      'i2s5a',  'pwm2',  'rsvd3', False, False,   False),
+    ('',                'e7',  0x324c, 'rsvd0',      'i2s5a',  'pwm3',  'rsvd3', False, False,   False),
+    ('gen3_i2c_scl',    'f0',  0x30cc, 'i2c3',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('gen3_i2c_sda',    'f1',  0x30d0, 'i2c3',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('uart2_tx',        'g0',  0x30f4, 'uartb',      'i2s4a',  'spdif', 'uart',  False, False,   False),
+    ('uart2_rx',        'g1',  0x30f8, 'uartb',      'i2s4a',  'spdif', 'uart',  False, False,   False),
+    ('uart2_rts',       'g2',  0x30fc, 'uartb',      'i2s4a',  'rsvd2', 'uart',  False, False,   False),
+    ('uart2_cts',       'g3',  0x3100, 'uartb',      'i2s4a',  'rsvd2', 'uart',  False, False,   False),
+    ('wifi_en',         'h0',  0x31b4, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('wifi_rst',        'h1',  0x31b8, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('wifi_wake_ap',    'h2',  0x31bc, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('ap_wake_bt',      'h3',  0x31c0, 'rsvd0',      'uartb',  'spdif', 'rsvd3', False, False,   False),
+    ('bt_rst',          'h4',  0x31c4, 'rsvd0',      'uartb',  'spdif', 'rsvd3', False, False,   False),
+    ('bt_wake_ap',      'h5',  0x31c8, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'h6',  0x3250, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('ap_wake_nfc',     'h7',  0x31cc, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('nfc_en',          'i0',  0x31d0, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('nfc_int',         'i1',  0x31d4, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('gps_en',          'i2',  0x31d8, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('gps_rst',         'i3',  0x31dc, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('uart4_tx',        'i4',  0x3114, 'uartd',      'uart',   'rsvd2', 'rsvd3', False, False,   False),
+    ('uart4_rx',        'i5',  0x3118, 'uartd',      'uart',   'rsvd2', 'rsvd3', False, False,   False),
+    ('uart4_rts',       'i6',  0x311c, 'uartd',      'uart',   'rsvd2', 'rsvd3', False, False,   False),
+    ('uart4_cts',       'i7',  0x3120, 'uartd',      'uart',   'rsvd2', 'rsvd3', False, False,   False),
+    ('gen1_i2c_sda',    'j0',  0x30c0, 'i2c1',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('gen1_i2c_scl',    'j1',  0x30bc, 'i2c1',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('gen2_i2c_scl',    'j2',  0x30c4, 'i2c2',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('gen2_i2c_sda',    'j3',  0x30c8, 'i2c2',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('dap4_fs',         'j4',  0x3144, 'i2s4b',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dap4_din',        'j5',  0x3148, 'i2s4b',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dap4_dout',       'j6',  0x314c, 'i2s4b',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dap4_sclk',       'j7',  0x3150, 'i2s4b',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'k0',  0x3254, 'iqc0',       'i2s5b',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k1',  0x3258, 'iqc0',       'i2s5b',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k2',  0x325c, 'iqc0',       'i2s5b',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k3',  0x3260, 'iqc0',       'i2s5b',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k4',  0x3264, 'iqc1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k5',  0x3268, 'iqc1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k6',  0x326c, 'iqc1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'k7',  0x3270, 'iqc1',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'l0',  0x3274, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('',                'l1',  0x3278, 'soc',        'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc1_clk',      'm0',  0x3000, 'sdmmc1',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc1_cmd',      'm1',  0x3004, 'sdmmc1',     'spi3',   'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc1_dat3',     'm2',  0x3008, 'sdmmc1',     'spi3',   'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc1_dat2',     'm3',  0x300c, 'sdmmc1',     'spi3',   'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc1_dat1',     'm4',  0x3010, 'sdmmc1',     'spi3',   'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc1_dat0',     'm5',  0x3014, 'sdmmc1',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc3_clk',      'p0',  0x301c, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc3_cmd',      'p1',  0x3020, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc3_dat3',     'p2',  0x3030, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc3_dat2',     'p3',  0x302c, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc3_dat1',     'p4',  0x3028, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('sdmmc3_dat0',     'p5',  0x3024, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('cam1_mclk',       's0',  0x3154, 'extperiph3', 'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('cam2_mclk',       's1',  0x3158, 'extperiph3', 'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('cam_i2c_scl',     's2',  0x30d4, 'i2c3',       'i2cvi',  'rsvd2', 'rsvd3', False, False,   True),
+    ('cam_i2c_sda',     's3',  0x30d8, 'i2c3',       'i2cvi',  'rsvd2', 'rsvd3', False, False,   True),
+    ('cam_rst',         's4',  0x31e0, 'vgp1',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('cam_af_en',       's5',  0x31e4, 'vimclk',     'vgp2',   'rsvd2', 'rsvd3', False, False,   False),
+    ('cam_flash_en',    's6',  0x31e8, 'vimclk',     'vgp3',   'rsvd2', 'rsvd3', False, False,   False),
+    ('cam1_pwdn',       's7',  0x31ec, 'vgp4',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('cam2_pwdn',       't0',  0x31f0, 'vgp5',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('cam1_strobe',     't1',  0x31f4, 'vgp6',       'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('uart1_tx',        'u0',  0x30e4, 'uarta',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('uart1_rx',        'u1',  0x30e8, 'uarta',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('uart1_rts',       'u2',  0x30ec, 'uarta',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('uart1_cts',       'u3',  0x30f0, 'uarta',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('lcd_bl_pwm',      'v0',  0x31fc, 'displaya',   'pwm0',   'sor0',  'rsvd3', False, False,   False),
+    ('lcd_bl_en',       'v1',  0x3200, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('lcd_rst',         'v2',  0x3204, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('lcd_gpio1',       'v3',  0x3208, 'displayb',   'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('lcd_gpio2',       'v4',  0x320c, 'displayb',   'pwm1',   'rsvd2', 'sor1',  False, False,   False),
+    ('ap_ready',        'v5',  0x3210, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('touch_rst',       'v6',  0x3214, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('touch_clk',       'v7',  0x3218, 'touch',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('modem_wake_ap',   'x0',  0x321c, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('touch_int',       'x1',  0x3220, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('motion_int',      'x2',  0x3224, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('als_prox_int',    'x3',  0x3228, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('temp_alert',      'x4',  0x322c, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('button_power_on', 'x5',  0x3230, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('button_vol_up',   'x6',  0x3234, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('button_vol_down', 'x7',  0x3238, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('button_slide_sw', 'y0',  0x323c, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('button_home',     'y1',  0x3240, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('lcd_te',          'y2',  0x31f8, 'displaya',   'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('pwr_i2c_scl',     'y3',  0x30dc, 'i2cpmu',     'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('pwr_i2c_sda',     'y4',  0x30e0, 'i2cpmu',     'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('clk_32k_out',     'y5',  0x3164, 'soc',        'blink',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'z0',  0x327c, 'vimclk2',    'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'z1',  0x3280, 'vimclk2',    'sdmmc1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'z2',  0x3284, 'sdmmc3',     'ccla',   'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'z3',  0x3288, 'sdmmc3',     'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'z4',  0x328c, 'sdmmc1',     'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'z5',  0x3290, 'soc',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dap2_fs',         'aa0', 0x3134, 'i2s2',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('dap2_sclk',       'aa1', 0x3140, 'i2s2',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('dap2_din',        'aa2', 0x3138, 'i2s2',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('dap2_dout',       'aa3', 0x313c, 'i2s2',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('aud_mclk',        'bb0', 0x3180, 'aud',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('dvfs_pwm',        'bb1', 0x3184, 'rsvd0',      'cldvfs', 'spi3',  'rsvd3', False, False,   False),
+    ('dvfs_clk',        'bb2', 0x3188, 'rsvd0',      'cldvfs', 'spi3',  'rsvd3', False, False,   False),
+    ('gpio_x1_aud',     'bb3', 0x318c, 'rsvd0',      'rsvd1',  'spi3',  'rsvd3', False, False,   False),
+    ('gpio_x3_aud',     'bb4', 0x3190, 'rsvd0',      'rsvd1',  'spi3',  'rsvd3', False, False,   False),
+    ('hdmi_cec',        'cc0', 0x3198, 'cec',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('hdmi_int_dp_hpd', 'cc1', 0x319c, 'dp',         'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('spdif_out',       'cc2', 0x31a0, 'spdif',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('spdif_in',        'cc3', 0x31a4, 'spdif',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('usb_vbus_en0',    'cc4', 0x31a8, 'usb',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('usb_vbus_en1',    'cc5', 0x31ac, 'usb',        'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('dp_hpd0',         'cc6', 0x31b0, 'dp',         'rsvd1',  'rsvd2', 'rsvd3', False, False,   False),
+    ('',                'cc7', 0x3194, 'rsvd0',      'rsvd1',  'rsvd2', 'rsvd3', False, False,   True),
+    ('spi2_cs1',        'dd0', 0x3074, 'spi2',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('qspi_sck',        'ee0', 0x3088, 'qspi',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('qspi_cs_n',       'ee1', 0x308c, 'qspi',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('qspi_io0',        'ee2', 0x3090, 'qspi',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('qspi_io1',        'ee3', 0x3094, 'qspi',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('qspi_io2',        'ee4', 0x3098, 'qspi',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+    ('qspi_io3',        'ee5', 0x309c, 'qspi',       'rsvd1',  'rsvd2', 'rsvd3', True,  True,    False),
+)
+
+pins = (
+    #name,           reg,    f0,         f1,      f2,      f3,      hsm,   drvtype, e_io_hv
+    ('core_pwr_req', 0x317c, 'core',     'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('cpu_pwr_req',  0x3170, 'cpu',      'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('pwr_int_n',    0x3174, 'pmi',      'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('clk_32k_in',   0x3160, 'clk',      'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('jtag_rtck',    0x315c, 'jtag',     'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('batt_bcl',     0x3168, 'bcl',      'rsvd1', 'rsvd2', 'rsvd3', False, False,   True),
+    ('clk_req',      0x316c, 'sys',      'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+    ('shutdown',     0x3178, 'shutdown', 'rsvd1', 'rsvd2', 'rsvd3', False, False,   False),
+)
+
+drive_groups = (
+    #name, r, drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w
+    ('als_prox_int',    0x8e4, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('ap_ready',        0x8e8, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('ap_wake_bt',      0x8ec, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('ap_wake_nfc',     0x8f0, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('aud_mclk',        0x8f4, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('batt_bcl',        0x8f8, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('bt_rst',          0x8fc, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('bt_wake_ap',      0x900, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('button_home',     0x904, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('button_power_on', 0x908, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('button_slide_sw', 0x90c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('button_vol_down', 0x910, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('button_vol_up',   0x914, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam1_mclk',       0x918, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam1_pwdn',       0x91c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam1_strobe',     0x920, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam2_mclk',       0x924, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam2_pwdn',       0x928, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam_af_en',       0x92c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam_flash_en',    0x930, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam_i2c_scl',     0x934, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam_i2c_sda',     0x938, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cam_rst',         0x93c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('clk_32k_in',      0x940, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('clk_32k_out',     0x944, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('clk_req',         0x948, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('core_pwr_req',    0x94c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('cpu_pwr_req',     0x950, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dap1_din',        0x954, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap1_dout',       0x958, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap1_fs',         0x95c, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap1_sclk',       0x960, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap2_din',        0x964, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap2_dout',       0x968, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap2_fs',         0x96c, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap2_sclk',       0x970, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('dap4_din',        0x974, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dap4_dout',       0x978, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dap4_fs',         0x97c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dap4_sclk',       0x980, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('sdmmc1',          0xa98, 12, 7,  20, 7,  28, 2,  30, 2),
+    ('sdmmc3',          0xab0, 12, 7,  20, 7,  28, 2,  30, 2),
+    ('sdmmc2',          0xa9c, 2,  6,  8,  6,  28, 2,  30, 2),
+    ('sdmmc4',          0xab4, 2,  6,  8,  6,  28, 2,  30, 2),
+    ('dmic1_clk',       0x984, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dmic1_dat',       0x988, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dmic2_clk',       0x98c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dmic2_dat',       0x990, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dmic3_clk',       0x994, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dmic3_dat',       0x998, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dp_hpd0',         0x99c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dvfs_clk',        0x9a0, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('dvfs_pwm',        0x9a4, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gen1_i2c_scl',    0x9a8, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gen1_i2c_sda',    0x9ac, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gen2_i2c_scl',    0x9b0, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gen2_i2c_sda',    0x9b4, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gen3_i2c_scl',    0x9b8, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gen3_i2c_sda',    0x9bc, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pa6',             0x9c0, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pcc7',            0x9c4, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pe6',             0x9c8, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pe7',             0x9cc, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('ph6',             0x9d0, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pk0',             0x9d4, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk1',             0x9d8, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk2',             0x9dc, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk3',             0x9e0, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk4',             0x9e4, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk5',             0x9e8, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk6',             0x9ec, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pk7',             0x9f0, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pl0',             0x9f4, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pl1',             0x9f8, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('pz0',             0x9fc, 12, 7,  20, 7,  -1, -1, -1, -1),
+    ('pz1',             0xa00, 12, 7,  20, 7,  -1, -1, -1, -1),
+    ('pz2',             0xa04, 12, 7,  20, 7,  -1, -1, -1, -1),
+    ('pz3',             0xa08, 12, 7,  20, 7,  -1, -1, -1, -1),
+    ('pz4',             0xa0c, 12, 7,  20, 7,  -1, -1, -1, -1),
+    ('pz5',             0xa10, 12, 7,  20, 7,  -1, -1, -1, -1),
+    ('gpio_x1_aud',     0xa14, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gpio_x3_aud',     0xa18, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gps_en',          0xa1c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('gps_rst',         0xa20, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('hdmi_cec',        0xa24, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('hdmi_int_dp_hpd', 0xa28, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('jtag_rtck',       0xa2c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('lcd_bl_en',       0xa30, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('lcd_bl_pwm',      0xa34, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('lcd_gpio1',       0xa38, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('lcd_gpio2',       0xa3c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('lcd_rst',         0xa40, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('lcd_te',          0xa44, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('modem_wake_ap',   0xa48, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('motion_int',      0xa4c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('nfc_en',          0xa50, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('nfc_int',         0xa54, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pex_l0_clkreq_n', 0xa58, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pex_l0_rst_n',    0xa5c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pex_l1_clkreq_n', 0xa60, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pex_l1_rst_n',    0xa64, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pex_wake_n',      0xa68, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pwr_i2c_scl',     0xa6c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pwr_i2c_sda',     0xa70, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('pwr_int_n',       0xa74, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('qspi_sck',        0xa90, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('sata_led_active', 0xa94, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('shutdown',        0xac8, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('spdif_in',        0xacc, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('spdif_out',       0xad0, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('spi1_cs0',        0xad4, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi1_cs1',        0xad8, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi1_mosi',       0xae0, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi1_miso',       0xadc, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi1_sck',        0xae4, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi2_cs0',        0xae8, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi2_cs1',        0xaec, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi2_mosi',       0xaf4, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi2_miso',       0xaf0, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi2_sck',        0xaf8, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi4_cs0',        0xafc, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi4_mosi',       0xb04, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi4_miso',       0xb00, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('spi4_sck',        0xb08, -1, -1, -1, -1, 28, 2,  30, 2),
+    ('temp_alert',      0xb0c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('touch_clk',       0xb10, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('touch_int',       0xb14, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('touch_rst',       0xb18, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart1_cts',       0xb1c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart1_rts',       0xb20, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart1_rx',        0xb24, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart1_tx',        0xb28, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart2_cts',       0xb2c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart2_rts',       0xb30, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart2_rx',        0xb34, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart2_tx',        0xb38, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart3_cts',       0xb3c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart3_rts',       0xb40, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart3_rx',        0xb44, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart3_tx',        0xb48, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart4_cts',       0xb4c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart4_rts',       0xb50, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart4_rx',        0xb54, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('uart4_tx',        0xb58, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('usb_vbus_en0',    0xb5c, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('usb_vbus_en1',    0xb60, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('wifi_en',         0xb64, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('wifi_rst',        0xb68, 12, 5,  20, 5,  -1, -1, -1, -1),
+    ('wifi_wake_ap',    0xb6c, 12, 5,  20, 5,  -1, -1, -1, -1),
+)
+
+drive_group_pins = {
+    'als_prox_int': (
+        'als_prox_int_px3',
+    ),
+    'ap_ready': (
+        'ap_ready_pv5',
+    ),
+    'ap_wake_bt': (
+        'ap_wake_bt_ph3',
+    ),
+    'ap_wake_nfc': (
+        'ap_wake_nfc_ph7',
+    ),
+    'aud_mclk': (
+        'aud_mclk_pbb0',
+    ),
+    'batt_bcl': (
+        'batt_bcl',
+    ),
+    'bt_rst': (
+        'bt_rst_ph4',
+    ),
+    'bt_wake_ap': (
+        'bt_wake_ap_ph5',
+    ),
+    'button_home': (
+        'button_home_py1',
+    ),
+    'button_power_on': (
+        'button_power_on_px5',
+    ),
+    'button_slide_sw': (
+        'button_slide_sw_py0',
+    ),
+    'button_vol_down': (
+        'button_vol_down_px7',
+    ),
+    'button_vol_up': (
+        'button_vol_up_px6',
+    ),
+    'cam1_mclk': (
+        'cam1_mclk_ps0',
+    ),
+    'cam1_pwdn': (
+        'cam1_pwdn_ps7',
+    ),
+    'cam1_strobe': (
+        'cam1_strobe_pt1',
+    ),
+    'cam2_mclk': (
+        'cam2_mclk_ps1',
+    ),
+    'cam2_pwdn': (
+        'cam2_pwdn_pt0',
+    ),
+    'cam_af_en': (
+        'cam_af_en_ps5',
+    ),
+    'cam_flash_en': (
+        'cam_flash_en_ps6',
+    ),
+    'cam_i2c_scl': (
+        'cam_i2c_scl_ps2',
+    ),
+    'cam_i2c_sda': (
+        'cam_i2c_sda_ps3',
+    ),
+    'cam_rst': (
+        'cam_rst_ps4',
+    ),
+    'clk_32k_in': (
+        'clk_32k_in',
+    ),
+    'clk_32k_out': (
+        'clk_32k_out_py5',
+    ),
+    'clk_req': (
+        'clk_req',
+    ),
+    'core_pwr_req': (
+        'core_pwr_req',
+    ),
+    'cpu_pwr_req': (
+        'cpu_pwr_req',
+    ),
+    'dap1_din': (
+        'dap1_din_pb1',
+    ),
+    'dap1_dout': (
+        'dap1_dout_pb2',
+    ),
+    'dap1_fs': (
+        'dap1_fs_pb0',
+    ),
+    'dap1_sclk': (
+        'dap1_sclk_pb3',
+    ),
+    'dap2_din': (
+        'dap2_din_paa2',
+    ),
+    'dap2_dout': (
+        'dap2_dout_paa3',
+    ),
+    'dap2_fs': (
+        'dap2_fs_paa0',
+    ),
+    'dap2_sclk': (
+        'dap2_sclk_paa1',
+    ),
+    'dap4_din': (
+        'dap4_din_pj5',
+    ),
+    'dap4_dout': (
+        'dap4_dout_pj6',
+    ),
+    'dap4_fs': (
+        'dap4_fs_pj4',
+    ),
+    'dap4_sclk': (
+        'dap4_sclk_pj7',
+    ),
+    'sdmmc1': (
+        'sdmmc1_clk_pm0',
+        'sdmmc1_cmd_pm1',
+        'sdmmc1_dat3_pm2',
+        'sdmmc1_dat2_pm3',
+        'sdmmc1_dat1_pm4',
+        'sdmmc1_dat0_pm5',
+    ),
+    'sdmmc3': (
+        'sdmmc3_clk_pp0',
+        'sdmmc3_cmd_pp1',
+        'sdmmc3_dat3_pp2',
+        'sdmmc3_dat2_pp3',
+        'sdmmc3_dat1_pp4',
+        'sdmmc3_dat0_pp5',
+    ),
+    'sdmmc2': (
+    ),
+    'sdmmc4': (
+    ),
+    'dmic1_clk': (
+        'dmic1_clk_pe0',
+    ),
+    'dmic1_dat': (
+        'dmic1_dat_pe1',
+    ),
+    'dmic2_clk': (
+        'dmic2_clk_pe2',
+    ),
+    'dmic2_dat': (
+        'dmic2_dat_pe3',
+    ),
+    'dmic3_clk': (
+        'dmic3_clk_pe4',
+    ),
+    'dmic3_dat': (
+        'dmic3_dat_pe5',
+    ),
+    'dp_hpd0': (
+        'dp_hpd0_pcc6',
+    ),
+    'dvfs_clk': (
+        'dvfs_clk_pbb2',
+    ),
+    'dvfs_pwm': (
+        'dvfs_pwm_pbb1',
+    ),
+    'gen1_i2c_scl': (
+        'gen1_i2c_scl_pj1',
+    ),
+    'gen1_i2c_sda': (
+        'gen1_i2c_sda_pj0',
+    ),
+    'gen2_i2c_scl': (
+        'gen2_i2c_scl_pj2',
+    ),
+    'gen2_i2c_sda': (
+        'gen2_i2c_sda_pj3',
+    ),
+    'gen3_i2c_scl': (
+        'gen3_i2c_scl_pf0',
+    ),
+    'gen3_i2c_sda': (
+        'gen3_i2c_sda_pf1',
+    ),
+    'pa6': (
+        'pa6',
+    ),
+    'pcc7': (
+        'pcc7',
+    ),
+    'pe6': (
+        'pe6',
+    ),
+    'pe7': (
+        'pe7',
+    ),
+    'ph6': (
+        'ph6',
+    ),
+    'pk0': (
+        'pk0',
+    ),
+    'pk1': (
+        'pk1',
+    ),
+    'pk2': (
+        'pk2',
+    ),
+    'pk3': (
+        'pk3',
+    ),
+    'pk4': (
+        'pk4',
+    ),
+    'pk5': (
+        'pk5',
+    ),
+    'pk6': (
+        'pk6',
+    ),
+    'pk7': (
+        'pk7',
+    ),
+    'pl0': (
+        'pl0',
+    ),
+    'pl1': (
+        'pl1',
+    ),
+    'pz0': (
+        'pz0',
+    ),
+    'pz1': (
+        'pz1',
+    ),
+    'pz2': (
+        'pz2',
+    ),
+    'pz3': (
+        'pz3',
+    ),
+    'pz4': (
+        'pz4',
+    ),
+    'pz5': (
+        'pz5',
+    ),
+    'gpio_x1_aud': (
+        'gpio_x1_aud_pbb3',
+    ),
+    'gpio_x3_aud': (
+        'gpio_x3_aud_pbb4',
+    ),
+    'gps_en': (
+        'gps_en_pi2',
+    ),
+    'gps_rst': (
+        'gps_rst_pi3',
+    ),
+    'hdmi_cec': (
+        'hdmi_cec_pcc0',
+    ),
+    'hdmi_int_dp_hpd': (
+        'hdmi_int_dp_hpd_pcc1',
+    ),
+    'jtag_rtck': (
+        'jtag_rtck',
+    ),
+    'lcd_bl_en': (
+        'lcd_bl_en_pv1',
+    ),
+    'lcd_bl_pwm': (
+        'lcd_bl_pwm_pv0',
+    ),
+    'lcd_gpio1': (
+        'lcd_gpio1_pv3',
+    ),
+    'lcd_gpio2': (
+        'lcd_gpio2_pv4',
+    ),
+    'lcd_rst': (
+        'lcd_rst_pv2',
+    ),
+    'lcd_te': (
+        'lcd_te_py2',
+    ),
+    'modem_wake_ap': (
+        'modem_wake_ap_px0',
+    ),
+    'motion_int': (
+        'motion_int_px2',
+    ),
+    'nfc_en': (
+        'nfc_en_pi0',
+    ),
+    'nfc_int': (
+        'nfc_int_pi1',
+    ),
+    'pex_l0_clkreq_n': (
+        'pex_l0_clkreq_n_pa1',
+    ),
+    'pex_l0_rst_n': (
+        'pex_l0_rst_n_pa0',
+    ),
+    'pex_l1_clkreq_n': (
+        'pex_l1_clkreq_n_pa4',
+    ),
+    'pex_l1_rst_n': (
+        'pex_l1_rst_n_pa3',
+    ),
+    'pex_wake_n': (
+        'pex_wake_n_pa2',
+    ),
+    'pwr_i2c_scl': (
+        'pwr_i2c_scl_py3',
+    ),
+    'pwr_i2c_sda': (
+        'pwr_i2c_sda_py4',
+    ),
+    'pwr_int_n': (
+        'pwr_int_n',
+    ),
+    'qspi_sck': (
+        'qspi_sck_pee0',
+    ),
+    'sata_led_active': (
+        'sata_led_active_pa5',
+    ),
+    'shutdown': (
+        'shutdown',
+    ),
+    'spdif_in': (
+        'spdif_in_pcc3',
+    ),
+    'spdif_out': (
+        'spdif_out_pcc2',
+    ),
+    'spi1_cs0': (
+        'spi1_cs0_pc3',
+    ),
+    'spi1_cs1': (
+        'spi1_cs1_pc4',
+    ),
+    'spi1_mosi': (
+        'spi1_mosi_pc0',
+    ),
+    'spi1_miso': (
+        'spi1_miso_pc1',
+    ),
+    'spi1_sck': (
+        'spi1_sck_pc2',
+    ),
+    'spi2_cs0': (
+        'spi2_cs0_pb7',
+    ),
+    'spi2_cs1': (
+        'spi2_cs1_pdd0',
+    ),
+    'spi2_mosi': (
+        'spi2_mosi_pb4',
+    ),
+    'spi2_miso': (
+        'spi2_miso_pb5',
+    ),
+    'spi2_sck': (
+        'spi2_sck_pb6',
+    ),
+    'spi4_cs0': (
+        'spi4_cs0_pc6',
+    ),
+    'spi4_mosi': (
+        'spi4_mosi_pc7',
+    ),
+    'spi4_miso': (
+        'spi4_miso_pd0',
+    ),
+    'spi4_sck': (
+        'spi4_sck_pc5',
+    ),
+    'temp_alert': (
+        'temp_alert_px4',
+    ),
+    'touch_clk': (
+        'touch_clk_pv7',
+    ),
+    'touch_int': (
+        'touch_int_px1',
+    ),
+    'touch_rst': (
+        'touch_rst_pv6',
+    ),
+    'uart1_cts': (
+        'uart1_cts_pu3',
+    ),
+    'uart1_rts': (
+        'uart1_rts_pu2',
+    ),
+    'uart1_rx': (
+        'uart1_rx_pu1',
+    ),
+    'uart1_tx': (
+        'uart1_tx_pu0',
+    ),
+    'uart2_cts': (
+        'uart2_cts_pg3',
+    ),
+    'uart2_rts': (
+        'uart2_rts_pg2',
+    ),
+    'uart2_rx': (
+        'uart2_rx_pg1',
+    ),
+    'uart2_tx': (
+        'uart2_tx_pg0',
+    ),
+    'uart3_cts': (
+        'uart3_cts_pd4',
+    ),
+    'uart3_rts': (
+        'uart3_rts_pd3',
+    ),
+    'uart3_rx': (
+        'uart3_rx_pd2',
+    ),
+    'uart3_tx': (
+        'uart3_tx_pd1',
+    ),
+    'uart4_cts': (
+        'uart4_cts_pi7',
+    ),
+    'uart4_rts': (
+        'uart4_rts_pi6',
+    ),
+    'uart4_rx': (
+        'uart4_rx_pi5',
+    ),
+    'uart4_tx': (
+        'uart4_tx_pi4',
+    ),
+    'usb_vbus_en0': (
+        'usb_vbus_en0_pcc4',
+    ),
+    'usb_vbus_en1': (
+        'usb_vbus_en1_pcc5',
+    ),
+    'wifi_en': (
+        'wifi_en_ph0',
+    ),
+    'wifi_rst': (
+        'wifi_rst_ph1',
+    ),
+    'wifi_wake_ap': (
+        'wifi_wake_ap_ph2',
+    ),
+}

@@ -80,17 +80,48 @@ dump_c_table(headings, 'GPIO_INIT', gpio_table)
 print('''\
 };
 
-#define PINCFG(_pingrp, _mux, _pull, _tri, _io, _od, _rcv_sel)	\\
-	{							\\
-		.pingrp		= PMUX_PINGRP_##_pingrp,	\\
-		.func		= PMUX_FUNC_##_mux,		\\
-		.pull		= PMUX_PULL_##_pull,		\\
-		.tristate	= PMUX_TRI_##_tri,		\\
-		.io		= PMUX_PIN_##_io,		\\
-		.od		= PMUX_PIN_OD_##_od,		\\
-		.rcv_sel	= PMUX_PIN_RCV_SEL_##_rcv_sel,	\\
-		.lock		= PMUX_PIN_LOCK_DEFAULT,	\\
-		.ioreset	= PMUX_PIN_IO_RESET_DEFAULT,	\\
+''', end='')
+
+params = ['_pingrp', '_mux', '_pull', '_tri', '_io', '_od']
+if board.soc.soc_pins_have_rcv_sel:
+    params += ['_rcv_sel',]
+if board.soc.soc_pins_have_e_io_hv:
+    params += ['_e_io_hv',]
+s = gen_wrapped_c_macro_header('PINCFG', params)
+
+s += '''\
+	{
+		.pingrp		= PMUX_PINGRP_##_pingrp,
+		.func		= PMUX_FUNC_##_mux,
+		.pull		= PMUX_PULL_##_pull,
+		.tristate	= PMUX_TRI_##_tri,
+		.io		= PMUX_PIN_##_io,
+		.od		= PMUX_PIN_OD_##_od,
+'''
+
+if board.soc.soc_pins_have_rcv_sel:
+	s += '''\
+		.rcv_sel	= PMUX_PIN_RCV_SEL_##_rcv_sel,
+'''
+
+if board.soc.soc_pins_have_e_io_hv:
+	s += '''\
+		.e_io_hv	= PMUX_PIN_E_IO_HV_##_e_io_hv,
+'''
+
+s += '''\
+		.lock		= PMUX_PIN_LOCK_DEFAULT,
+'''
+
+if board.soc.soc_pins_have_ior:
+	s += '''\
+		.ioreset	= PMUX_PIN_IO_RESET_DEFAULT,
+'''
+
+s = append_aligned_tabs_indent_with_tabs(s)
+print(s)
+
+print('''\
 	}
 
 static const struct pmux_pingrp_config %(board_varname)s_pingrps[] = {
@@ -125,6 +156,11 @@ def mapper_rcv_sel(gpio_pin, val):
         return 'DEFAULT'
     return {False: 'NORMAL', True: 'HIGH'}[val]
 
+def mapper_e_io_hv(gpio_pin, val):
+    if not gpio_pin.e_io_hv:
+        return 'DEFAULT'
+    return {False: 'NORMAL', True: 'HIGH'}[val]
+
 pincfg_table = []
 for pincfg in board.pincfgs_by_num():
     row = (
@@ -135,12 +171,16 @@ for pincfg in board.pincfgs_by_num():
         mapper_e_input(pincfg.e_inp),
         mapper_od(pincfg.gpio_pin, pincfg.od),
     )
-    if board.soc.has_rcv_sel:
+    if board.soc.soc_pins_have_rcv_sel:
         row += (mapper_rcv_sel(pincfg.gpio_pin, pincfg.rcv_sel),)
+    if board.soc.soc_pins_have_e_io_hv:
+        row += (mapper_e_io_hv(pincfg.gpio_pin, pincfg.e_io_hv),)
     pincfg_table.append(row)
 headings = ('pingrp', 'mux', 'pull', 'tri', 'e_input', 'od')
-if board.soc.has_rcv_sel:
+if board.soc.soc_pins_have_rcv_sel:
     headings += ('rcv_sel',)
+if board.soc.soc_pins_have_e_io_hv:
+    headings += ('e_io_hv',)
 dump_c_table(headings, 'PINCFG', pincfg_table)
 
 print('''\

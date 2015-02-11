@@ -20,14 +20,17 @@
 
 import sys
 
-def emit_tab_padding_to(curpos, targetpos):
+def gen_tab_padding_to(curpos, targetpos):
     curpos -= 1
     targetpos -= 1
     if (targetpos & 7):
         raise Exception(str(targetpos) + ' is not a TAB stop')
     left = targetpos - curpos
     tabs = (left + 7) // 8
-    print('\t' * tabs, end='')
+    return '\t' * tabs
+
+def emit_tab_padding_to(curpos, targetpos):
+    print(gen_tab_padding_to(curpos, targetpos), end='')
 
 def emit_padded_field(s, maxl, skip_comma=False, right_justify=False, file=sys.stdout):
     pad = (' ' * (maxl - len(s)))
@@ -46,11 +49,56 @@ def emit_define(define, value, valuecol):
     emit_tab_padding_to(len(s) + 1, valuecol)
     print(value)
 
+def gen_wrapped_c_macro_header(macro, params):
+    intro = '#define %s(' % macro
+    intro_space = ' ' * len(intro)
+    s = ''
+    l = intro
+    for i, param in enumerate(params):
+        if i != 0:
+            prefix = ' '
+        else:
+            prefix = ''
+        if i == len(params) - 1:
+            suffix = ')'
+        else:
+            suffix = ','
+        #           ', '             ','
+        if (len(l) + len(prefix) + len(param) + len(suffix)) < 71:
+            l += prefix + param + suffix
+        else:
+            s += l + '\n'
+            l = intro_space + param + suffix
+    if l:
+        s += l
+        s += '\n'
+    return s
+
+def append_aligned_tabs_indent_with_tabs(s):
+    lines = s.split('\n')
+    if lines[-1].strip() == '':
+        del lines[-1]
+    for i, l in enumerate(lines):
+        lines[i] = l.replace('\t', '        ')
+    max_len = 0
+    for l in lines:
+        max_len = max(max_len, len(l))
+    tabpos = (max_len + 7) // 8
+    for i, l in enumerate(lines):
+        remaining = 72 - len(l)
+        lines[i] += gen_tab_padding_to(len(l) + 1, 73) + '\\'
+    for i, l in enumerate(lines):
+        lines[i] = l.replace('        ', '\t')
+    return '\n'.join(lines)
+
 def yn_to_boolean(s):
     return {'N': False, 'Y': True}[s]
 
 def boolean_to_yn(val):
     return {True: 'Y', False: 'N'}[val]
+
+def boolean_to_c_bool(val):
+    return {True: 'true', False: 'false'}[val]
 
 def dump_table(heading_prefix, heading_suffix, headings, row_prefix, row_suffix, rows, col_widths, file, right_justifies):
     num_cols = 0

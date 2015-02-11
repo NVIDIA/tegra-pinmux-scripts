@@ -56,8 +56,10 @@ for pincfg in board.pincfgs_by_num():
     print('				nvidia,enable-input = <' + mapper_bool(pincfg.e_inp) + '>;')
     if pincfg.gpio_pin.od:
         print('				nvidia,open-drain = <' + mapper_bool(pincfg.od) + '>;')
-    if hasattr(pincfg.gpio_pin, 'rcv_sel') and pincfg.gpio_pin.rcv_sel:
+    if board.soc.soc_pins_have_rcv_sel and pincfg.gpio_pin.rcv_sel and hasattr(pincfg.gpio_pin, 'rcv_sel'):
         print('				nvidia,rcv-sel = <' + mapper_bool(pincfg.rcv_sel) + '>;')
+    if board.soc.soc_pins_have_e_io_hv and pincfg.gpio_pin.e_io_hv and hasattr(pincfg.gpio_pin, 'e_io_hv'):
+        print('				nvidia,io-hv = <' + mapper_bool(pincfg.e_io_hv) + '>;')
     print('			};')
 
 # FIXME: Handle drive groups

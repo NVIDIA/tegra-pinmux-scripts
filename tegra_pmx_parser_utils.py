@@ -34,5 +34,7 @@ class TopLevelParsedObj(ReprDictObj):
             if attr in data:
                 val = data[attr]
             else:
+                if default is None:
+                    raise Exception('Missing variable ' + attr)
                 val = default
             self.__setattr__(attr, val)
