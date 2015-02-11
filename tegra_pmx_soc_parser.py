@@ -85,6 +85,14 @@ class DriveGroup(ReprDictObj):
         self.gpios_pins = gpios_pins
         self.fullname = 'drive_' + self.name
 
+class MipiPadCtrlGroup(ReprDictObj):
+    def __init__(self, data, gpios_pins):
+        fields = ('name', 'reg', 'bit', 'f0', 'f1')
+        for i, field in enumerate(fields):
+            self.__setattr__(field, data[i])
+        self.gpios_pins = gpios_pins
+        self.fullname = 'mipi_pad_ctrl_' + self.name
+
 class Function(ReprDictObj):
     def __init__(self, name):
         self.name = name
@@ -126,6 +134,14 @@ class Soc(TopLevelParsedObj):
                 gpios_pins.append(gpios_pins_by_name[name])
             self._drive_groups.append(DriveGroup(drive_group, gpios_pins, self.has_drvtype))
 
+        self._mipi_pad_ctrl_groups = []
+        for group in data.get('mipi_pad_ctrl_groups', []):
+            names = data['mipi_pad_ctrl_group_pins'][group[0]]
+            gpios_pins = []
+            for name in names:
+                gpios_pins.append(gpios_pins_by_name[name])
+            self._mipi_pad_ctrl_groups.append(MipiPadCtrlGroup(group, gpios_pins))
+
         self._generate_derived_data()
 
     def _generate_derived_data(self):
@@ -143,11 +159,19 @@ class Soc(TopLevelParsedObj):
         self._drive_groups_by_reg = sorted(self._drive_groups, key=lambda drive_group: drive_group.reg)
         self._drive_groups_by_alpha = sorted(self._drive_groups, key=lambda drive_group: drive_group.name)
 
+        self._mipi_pad_ctrl_groups_by_reg = sorted(self._mipi_pad_ctrl_groups, key=lambda group: group.reg)
+        self._mipi_pad_ctrl_groups_by_alpha = sorted(self._mipi_pad_ctrl_groups, key=lambda group: group.name)
+
         functions = collections.OrderedDict()
         for pin in self._gpios + self._pins:
             if not pin.reg:
                 continue
             for func in pin.funcs:
+                if func not in functions:
+                    functions[func] = Function(func)
+                functions[func]._add_pin(pin)
+        for group in self._mipi_pad_ctrl_groups:
+            for func in (group.f0, group.f1):
                 if func not in functions:
                     functions[func] = Function(func)
                 functions[func]._add_pin(pin)
@@ -200,6 +224,15 @@ class Soc(TopLevelParsedObj):
 
     def drive_groups_by_alpha(self):
         return self._drive_groups_by_alpha
+
+    def mipi_pad_ctrl_groups_by_conf_order(self):
+        return self._mipi_pad_ctrl_groups
+
+    def mipi_pad_ctrl_groups_by_reg(self):
+        return self._mipi_pad_ctrl_groups_by_reg
+
+    def mipi_pad_ctrl_groups_by_alpha(self):
+        return self._mipi_pad_ctrl_groups_by_alpha
 
     def functions(self):
         return self._functions

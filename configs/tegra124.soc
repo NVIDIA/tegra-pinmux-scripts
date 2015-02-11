@@ -203,6 +203,16 @@ pins = (
     ('owr',          0x3334, 'owr',    'rsvd2', 'rsvd3', 'rsvd4',       False, False, True),
     ('clk_32k_in',   0x3330, 'clk',    'rsvd2', 'rsvd3', 'rsvd4',       False, False, False),
     ('jtag_rtck',    0x32b0, 'rtck',   'rsvd2', 'rsvd3', 'rsvd4',       False, False, False),
+    ('dsi_b_clk_p',  ),
+    ('dsi_b_clk_n',  ),
+    ('dsi_b_d0_p',   ),
+    ('dsi_b_d0_n',   ),
+    ('dsi_b_d1_p',   ),
+    ('dsi_b_d1_n',   ),
+    ('dsi_b_d2_p',   ),
+    ('dsi_b_d2_n',   ),
+    ('dsi_b_d3_p',   ),
+    ('dsi_b_d3_n',   ),
 )
 
 drive_groups = (
@@ -522,5 +532,25 @@ drive_group_pins = {
     ),
     'ao4': (
         'jtag_rtck',
+    ),
+}
+
+mipi_pad_ctrl_groups = {
+    #name,    r,     b, f0,    f1
+    ('dsi_b', 0x820, 1, 'csi', 'dsi_b'),
+}
+
+mipi_pad_ctrl_group_pins = {
+    'dsi_b': (
+        'dsi_b_clk_p',
+        'dsi_b_clk_n',
+        'dsi_b_d0_p',
+        'dsi_b_d0_n',
+        'dsi_b_d1_p',
+        'dsi_b_d1_n',
+        'dsi_b_d2_p',
+        'dsi_b_d2_n',
+        'dsi_b_d3_p',
+        'dsi_b_d3_n',
     ),
 }

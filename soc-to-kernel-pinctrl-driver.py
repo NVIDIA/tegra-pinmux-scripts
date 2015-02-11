@@ -124,6 +124,15 @@ static const unsigned %s_pins[] = {
         print('\t%s,' % pin.define)
     print('};');
 
+for group in soc.mipi_pad_ctrl_groups_by_reg():
+    print('''\
+
+static const unsigned %s_pins[] = {
+''' % group.fullname, end='')
+    for pin in group.gpios_pins:
+        print('\t%s,' % pin.define)
+    print('};');
+
 print('''\
 
 enum tegra_mux {
@@ -151,6 +160,12 @@ print('''\
 
 #define DRV_PINGROUP_REG_A		0x868	/* bank 0 */
 #define PINGROUP_REG_A			0x3000	/* bank 1 */
+''', end='')
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('#define MIPI_PAD_CTRL_PINGROUP_REG_A	0x820	/* bank 2 */''')
+
+print('''\
 
 #define PINGROUP_REG(r)			((r) - PINGROUP_REG_A)
 
@@ -263,6 +278,40 @@ else:
 print('''\
 	}
 
+''', end='')
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('''\
+#define MIPI_PAD_CTRL_PINGROUP_REG_Y(r)	((r) - MIPI_PAD_CTRL_PINGROUP_REG_A)
+
+#define MIPI_PAD_CTRL_PINGROUP(pg_name, r, b, f0, f1)			\\
+	{								\\
+		.name = "mipi_pad_ctrl_" #pg_name,			\\
+		.pins = mipi_pad_ctrl_##pg_name##_pins,			\\
+		.npins = ARRAY_SIZE(mipi_pad_ctrl_##pg_name##_pins),	\\
+		.funcs = {						\\
+			TEGRA_MUX_ ## f0,				\\
+			TEGRA_MUX_ ## f1,				\\
+			TEGRA_MUX_RSVD3,				\\
+			TEGRA_MUX_RSVD4,				\\
+		},							\\
+		.mux_reg = MIPI_PAD_CTRL_PINGROUP_REG_Y(r),		\\
+		.mux_bank = 2,						\\
+		.mux_bit = b,						\\
+		.pupd_reg = -1,						\\
+		.tri_reg = -1,						\\
+		.einput_bit = -1,					\\
+		.odrain_bit = -1,					\\
+		.lock_bit = -1,						\\
+		.ioreset_bit = -1,					\\
+		.rcv_sel_bit = -1,					\\
+		.drv_reg = -1,						\\
+	}
+
+''', end='')
+
+
+print('''\
 static const struct tegra_pingroup %s_groups[] = {
 ''' % soc.name, end='')
 
@@ -360,6 +409,21 @@ for drvgroup in f():
         row += (boolean_to_yn(drvgroup.drvtype),)
     rows.append(row)
 dump_c_table(None, 'DRV_PINGROUP', rows, col_widths=col_widths, right_justifies=right_justifies)
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print()
+    headings = ('pg_name', 'r', 'b', 'f0', 'f1')
+    rows = []
+    for group in soc.mipi_pad_ctrl_groups_by_reg():
+        row = (
+            group.name,
+            '0x%x' % group.reg,
+            repr(group.bit),
+            group.f0.upper(),
+            group.f1.upper(),
+        )
+    rows.append(row)
+    dump_c_table(headings, 'MIPI_PAD_CTRL_PINGROUP', rows )
 
 socvars = {
     'author': soc.kernel_author,
