@@ -64,7 +64,7 @@ class Board(TopLevelParsedObj):
         return self._pincfgs_by_num
 
     def warn_about_unconfigured_pins(self):
-        unconfigured_gpio_pins = {gpio_pin.fullname for gpio_pin in self.soc.gpios_pins_by_num()}
+        unconfigured_gpio_pins = [gpio_pin.fullname for gpio_pin in self.soc.gpios_pins_by_num() if gpio_pin.reg]
         for gpio_pin in self.pincfgs_by_num():
             unconfigured_gpio_pins.remove(gpio_pin.gpio_pin.fullname)
         for gpio_pin in unconfigured_gpio_pins:
