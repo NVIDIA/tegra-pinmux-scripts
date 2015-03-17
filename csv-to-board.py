@@ -190,18 +190,27 @@ with open(board_conf['filename'], newline='') as fh:
                 try:
                     cols[colid] = row.index(coltext)
                 except:
-                    if board_conf['soc'] != 'tegra124':
-                        raise
-                    if colid != COL_RCV_SEL:
-                        print('ERROR: Header column "%s" not found' % coltext, file=sys.stderr)
-                        sys.exit(1)
+                    if colid in (COL_BALL_MID, COL_BALL_DSC):
+                        pass
+                    else:
+                        if board_conf['soc'] != 'tegra124':
+                            raise
+                        if colid != COL_RCV_SEL:
+                            print('ERROR: Header column "%s" not found' % coltext, file=sys.stderr)
+                            sys.exit(1)
                     cols[colid] = None
             found_header = True
             continue
 
         ball_name = row[cols[COL_BALL_NAME]].lower()
-        ball_mid = row[cols[COL_BALL_MID]]
-        ball_dsc = row[cols[COL_BALL_DSC]]
+        if cols[COL_BALL_MID]:
+            ball_mid = row[cols[COL_BALL_MID]]
+        else:
+            ball_mid = None
+        if cols[COL_BALL_DSC]:
+            ball_dsc = row[cols[COL_BALL_DSC]]
+        else:
+            ball_dsc = None
 
         # Section title row
         if not ball_mid and not ball_dsc:
