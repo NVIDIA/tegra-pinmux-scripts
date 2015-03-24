@@ -182,7 +182,6 @@ pins = (
     ('uart3_rts_n_pc0',        'gmi',          None,      'down', True,  False, False, False),
     ('uart3_rxd_pw7',          'rsvd2',        None,      'down', True,  False, False, False),
     ('uart3_txd_pw6',          'rsvd2',        None,      'down', True,  False, False, False),
-    ('owr',                    'rsvd2',        None,      'down', True,  False, False, False),
     ('hdmi_cec_pee3',          'cec',          None,      'none', False, True,  False, False),
     ('hdmi_int_pn7',           None,           'in',      'down', True,  True,  False, False),
     ('ddc_scl_pv4',            'i2c4',         None,      'none', False, True,  False, False),
@@ -195,4 +194,9 @@ pins = (
 )
 
 drive_groups = (
+)
+
+mipi_pad_ctrl_groups = (
+    #pin,     mux
+    ('dsi_b', 'dsi_b'),
 )
