@@ -64,6 +64,12 @@ for pincfg in board.pincfgs_by_num():
 
 # FIXME: Handle drive groups
 
+for cfg in board.mipipadctrlcfgs_by_num():
+    print('			' + cfg.name + ' {')
+    print('				nvidia,pins = "mipi_pad_ctrl_' + cfg.name + '";')
+    print('				nvidia,function = "' + cfg.mux + '";')
+    print('			};')
+
 print('		};')
 
 board.warn_about_unconfigured_pins()

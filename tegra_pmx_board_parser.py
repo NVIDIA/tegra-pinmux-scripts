@@ -37,6 +37,13 @@ class PinConfig(ReprDictObj):
             self.__setattr__(field, data[i])
         self.gpio_pin = soc.gpio_or_pin_by_fullname(self.fullname)
 
+class MipiPadCtrlConfig(ReprDictObj):
+    def __init__(self, soc, data):
+        fields = ('name', 'mux')
+        for i, field in enumerate(fields):
+            self.__setattr__(field, data[i])
+        self.mipi_pad_ctrl_group = soc.mipi_pad_ctrl_group_by_name(self.name)
+
 class Board(TopLevelParsedObj):
     def __init__(self, name, data):
         TopLevelParsedObj.__init__(self, name, (), data)
@@ -54,16 +61,29 @@ class Board(TopLevelParsedObj):
         # FIXME: fill this in...
         self.drvcfg = []
 
+        self._mipipadctrlcfgs = []
+        if 'mipi_pad_ctrl_groups' in data:
+            for num, pindata in enumerate(data['mipi_pad_ctrl_groups']):
+                mipipadctrlcfg = MipiPadCtrlConfig(self.soc, pindata)
+                self._mipipadctrlcfgs.append(mipipadctrlcfg)
+
         self._generate_derived_data()
 
     def _generate_derived_data(self):
         self._pincfgs_by_num = sorted(self._pincfgs, key=lambda pincfg: pincfg.gpio_pin.sort_by_num_key())
+        self._mipipadctrlcfgs_by_num = sorted(self._mipipadctrlcfgs, key=lambda cfg: cfg.mipi_pad_ctrl_group.reg)
 
     def pincfgs_by_conf_order(self):
         return self._pincfgs
 
     def pincfgs_by_num(self):
         return self._pincfgs_by_num
+
+    def mipipadctrlcfgs_by_conf_order(self):
+        return self._mipipadctrlcfgs
+
+    def mipipadctrlcfgs_by_num(self):
+        return self._mipipadctrlcfgs_by_num
 
     def warn_about_unconfigured_pins(self):
         unconfigured_gpio_pins = [gpio_pin.fullname for gpio_pin in self.soc.gpios_pins_by_num() if gpio_pin.reg]

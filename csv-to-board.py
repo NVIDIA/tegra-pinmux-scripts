@@ -173,6 +173,7 @@ def rcv_sel_munge(d):
 
 found_header = False
 pin_table = []
+mipi_table = []
 with open(board_conf['filename'], newline='') as fh:
     csv = csv.reader(fh)
     lnum = 0
@@ -203,6 +204,12 @@ with open(board_conf['filename'], newline='') as fh:
             continue
 
         ball_name = row[cols[COL_BALL_NAME]].lower()
+        if ball_name.startswith('mipi_pad_ctrl_'):
+            ball_name = ball_name[14:]
+            mipi = soc.mipi_pad_ctrl_group_by_name(ball_name)
+        else:
+            mipi = None
+
         if cols[COL_BALL_MID]:
             ball_mid = row[cols[COL_BALL_MID]]
         else:
@@ -212,11 +219,16 @@ with open(board_conf['filename'], newline='') as fh:
         else:
             ball_dsc = None
 
+
         # Section title row
-        if not ball_mid and not ball_dsc:
+        if not ball_mid and not ball_dsc and not mipi:
             continue
 
         mux = func_munge(row[cols[COL_MUX]].lower())
+
+        if mipi:
+            mipi_table.append((repr(mipi.name), repr(mux)))
+            continue
 
         # Pin not affected by pinmux
         if mux in ('', '0', '#n/a'):
@@ -286,21 +298,25 @@ with open(board_conf['filename'], newline='') as fh:
 
         pin_table.append((repr(gpio_pin.fullname), repr(mux), repr(gpio_init), repr(pupd), repr(tri), repr(e_input), repr(od), repr(rcv_sel)))
 
-headings = ('pin', 'mux', 'gpio_init', 'pull', 'tri', 'e_inp', 'od')
+pin_headings = ('pin', 'mux', 'gpio_init', 'pull', 'tri', 'e_inp', 'od')
 if soc.soc_pins_have_e_io_hv:
-    headings += ('e_io_hv',)
+    pin_headings += ('e_io_hv',)
 if soc.soc_pins_have_rcv_sel:
-    headings += ('rcv_sel',)
+    pin_headings += ('rcv_sel',)
+
+mipi_headings = ('pin', 'mux')
 
 cfgfile = os.path.join('configs', args.board + '.board')
 with open(cfgfile, 'wt') as fh:
     print('soc = \'%s\'' % board_conf['soc'], file=fh)
     print(file=fh)
     print('pins = (', file=fh)
-
-    dump_py_table(headings, pin_table, file=fh)
-
+    dump_py_table(pin_headings, pin_table, file=fh)
     print(')', file=fh)
     print('', file=fh)
     print('drive_groups = (', file=fh)
+    print(')', file=fh)
+    print('', file=fh)
+    print('mipi_pad_ctrl_groups = (', file=fh)
+    dump_py_table(mipi_headings, mipi_table, file=fh)
     print(')', file=fh)

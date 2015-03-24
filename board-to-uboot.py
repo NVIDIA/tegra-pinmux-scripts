@@ -205,6 +205,35 @@ static const struct pmux_drvgrp_config %s_drvgrps[] = {
 print('''\
 };
 
+''', end='')
+
+if len(board.mipipadctrlcfgs_by_num()):
+    print('''\
+#define MIPIPADCTRLCFG(_grp, _mux) \\
+	{							\\
+		.grp		= PMUX_MIPIPADCTRLGRP_##_grp,	\\
+		.func		= PMUX_FUNC_##_mux,		\\
+	}
+
+static const struct pmux_mipipadctrlgrp_config %s_mipipadctrlgrps[] = {
+''' % board.varname, end='')
+
+    mipipadctrl_table = []
+    for cfg in board.mipipadctrlcfgs_by_num():
+        row = (
+            cfg.name.upper(),
+            mapper_mux(cfg.mux),
+        )
+        mipipadctrl_table.append(row)
+    headings = ('grp', 'mux')
+    dump_c_table(headings, 'MIPIPADCTRLCFG', mipipadctrl_table)
+
+    print('''\
+};
+
+''', end='')
+
+print('''\
 #endif /* PINMUX_CONFIG_%s_H */
 ''' % board.definename, end='')
 
