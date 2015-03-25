@@ -126,6 +126,7 @@ class MipiPadCtrlGroup(ReprDictObj):
             self.__setattr__(field, data[i])
         self.gpios_pins = gpios_pins
         self.fullname = 'mipi_pad_ctrl_' + self.name
+        self.funcs = (self.f0, self.f1)
 
 class Function(ReprDictObj):
     def __init__(self, name):
@@ -158,6 +159,7 @@ class Soc(TopLevelParsedObj):
             ('soc_pins_have_rcv_sel', None),
             ('soc_pins_have_schmitt', None),
             ('soc_drv_reg_base', None),
+            ('soc_mipipadctrl_reg_base', 0),
             ('soc_einput_b', None),
             ('soc_odrain_b', None),
         )
@@ -228,7 +230,6 @@ class Soc(TopLevelParsedObj):
             for func in (group.f0, group.f1):
                 if func not in functions:
                     functions[func] = Function(func)
-                functions[func]._add_pin(pin)
         self._functions = functions.values()
         self._functions_by_alpha = sorted(self._functions, key=lambda f: f.name)
 
@@ -287,6 +288,12 @@ class Soc(TopLevelParsedObj):
 
     def mipi_pad_ctrl_groups_by_alpha(self):
         return self._mipi_pad_ctrl_groups_by_alpha
+
+    def mipi_pad_ctrl_group_by_name(self, name):
+        for mipi_pad_ctrl in self._mipi_pad_ctrl_groups:
+            if name == mipi_pad_ctrl.name:
+                return mipi_pad_ctrl
+        return None
 
     def functions(self):
         return self._functions

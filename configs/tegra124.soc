@@ -23,6 +23,7 @@ soc_pins_have_od = True
 soc_pins_have_rcv_sel = True
 soc_pins_have_schmitt = False
 soc_drv_reg_base = 0x868
+soc_mipipadctrl_reg_base = 0x820
 soc_einput_b = 5
 soc_odrain_b = 6
 

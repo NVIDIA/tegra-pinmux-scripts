@@ -85,6 +85,28 @@ for group in soc.drive_groups_by_reg():
 print('''\
 	PMUX_DRVGRP_COUNT,
 };
+''', file=f, end='')
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('''\
+
+enum pmux_mipipadctrlgrp {
+''', file=f, end='')
+
+    last_reg = soc.soc_mipipadctrl_reg_base - 4
+    for group in soc.mipi_pad_ctrl_groups_by_reg():
+        if group.reg != last_reg + 4:
+            eqs = ' = (0x%x / 4)' % (group.reg - soc.soc_mipipadctrl_reg_base)
+        else:
+            eqs = ''
+        print('\tPMUX_MIPIPADCTRLGRP_%s%s,' % (group.name.upper(), eqs), file=f)
+
+    print('''\
+	PMUX_MIPIPADCTRLGRP_COUNT,
+};
+''', file=f, end='')
+
+print('''\
 
 enum pmux_func {
 	PMUX_FUNC_DEFAULT,
@@ -107,10 +129,16 @@ print('''\
 ''' % tuple(soc.soc_rsvd_base + i for i in range(4)), file=f, end='')
 
 print('#define TEGRA_PMX_SOC_DRV_GROUP_BASE_REG 0x%x' % soc.soc_drv_reg_base, file=f)
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('#define TEGRA_PMX_SOC_MIPIPADCTRL_BASE_REG 0x%x' % soc.soc_mipipadctrl_reg_base, file=f)
+
 if soc.soc_has_io_clamping:
     print('#define TEGRA_PMX_SOC_HAS_IO_CLAMPING', file=f)
 
 print('#define TEGRA_PMX_SOC_HAS_DRVGRPS', file=f)
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('#define TEGRA_PMX_SOC_HAS_MIPI_PAD_CTRL_GRPS', file=f)
 
 if soc.soc_drvgroups_have_lpmd:
     print('#define TEGRA_PMX_GRPS_HAVE_LPMD', file=f)
@@ -191,6 +219,43 @@ dump_c_table(headings, 'PIN', rows, file=f)
 print('''\
 };
 const struct pmux_pingrp_desc *tegra_soc_pingroups = %s_pingroups;
+''' % soc.name, file=f, end='')
+
+if len(soc.mipi_pad_ctrl_groups_by_reg()):
+    print('''\
+
+#define MIPIPADCTRL_GRP(grp, f0, f1)	\\
+	{				\\
+		.funcs = {		\\
+			PMUX_FUNC_##f0,	\\
+			PMUX_FUNC_##f1,	\\
+		},			\\
+	}
+
+#define MIPIPADCTRL_RESERVED {}
+
+static const struct pmux_mipipadctrlgrp_desc %s_mipipadctrl_groups[] = {
+''' % soc.name, file=f, end='')
+
+    headings = ('pin', 'f0', 'f1')
+    rows = []
+    last_reg = 0
+    for grp in soc.mipi_pad_ctrl_groups_by_reg():
+        if grp.reg != last_reg + 4:
+            if last_reg:
+                for i in range(((grp.reg - last_reg) // 4) - 1):
+                    rows.append('\tMIPIPACTRL_RESERVED,',)
+            rows.append('\t/* Offset 0x%x */' % grp.reg,)
+        last_reg = grp.reg
+        row = (grp.name.upper(),)
+        for i in range(2):
+            row += (grp.funcs[i].upper(),)
+        rows.append(row)
+    dump_c_table(headings, 'MIPIPADCTRL_GRP', rows, file=f)
+
+    print('''\
+};
+const struct pmux_mipipadctrlgrp_desc *tegra_soc_mipipadctrl_groups = %s_mipipadctrl_groups;
 ''' % soc.name, file=f, end='')
 
 f.close()
