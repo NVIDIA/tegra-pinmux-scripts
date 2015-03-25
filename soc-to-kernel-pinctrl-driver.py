@@ -302,7 +302,7 @@ else:
 		.drv_reg = -1,
 '''
 
-s = append_aligned_tabs_indent_with_tabs(s)
+s = append_aligned_tabs_indent_with_tabs(s, 72)
 print(s)
 
 print('''\
@@ -372,7 +372,7 @@ s += '''\
 		.drvtype_bit = %(drvtype_bit_val)s
 ''' % globals()
 
-s = append_aligned_tabs_indent_with_tabs(s)
+s = append_aligned_tabs_indent_with_tabs(s, 72)
 print(s)
 
 print('''\

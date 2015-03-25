@@ -117,7 +117,7 @@ if board.soc.soc_pins_have_ior:
 		.ioreset	= PMUX_PIN_IO_RESET_DEFAULT,
 '''
 
-s = append_aligned_tabs_indent_with_tabs(s)
+s = append_aligned_tabs_indent_with_tabs(s, 0)
 print(s)
 
 print('''\

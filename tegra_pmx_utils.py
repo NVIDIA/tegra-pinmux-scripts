@@ -74,21 +74,31 @@ def gen_wrapped_c_macro_header(macro, params):
         s += '\n'
     return s
 
-def append_aligned_tabs_indent_with_tabs(s):
+def len_evaluating_tabs(s):
+    l = 0
+    for c in s:
+        if c == '\t':
+            l = (l + 8) & ~7
+        else:
+            l += 1
+    return l
+
+def append_aligned_tabs_indent_with_tabs(s, min_slashpos):
     lines = s.split('\n')
     if lines[-1].strip() == '':
         del lines[-1]
-    for i, l in enumerate(lines):
-        lines[i] = l.replace('\t', '        ')
-    max_len = 0
-    for l in lines:
-        max_len = max(max_len, len(l))
-    tabpos = (max_len + 7) // 8
-    for i, l in enumerate(lines):
-        remaining = 72 - len(l)
-        lines[i] += gen_tab_padding_to(len(l) + 1, 73) + '\\'
+    # This is intended to translate leading spaces to TABs, so that callers
+    # don't have to work out the right number of TABs to use. It also would
+    # affect intra-line space, but there is none in practice so far.
     for i, l in enumerate(lines):
         lines[i] = l.replace('        ', '\t')
+    max_len = 0
+    for l in lines:
+        max_len = max(max_len, len_evaluating_tabs(l))
+    max_len = max(max_len, min_slashpos)
+    tabpos = (max_len + 7) & ~7
+    for i, l in enumerate(lines):
+        lines[i] += gen_tab_padding_to(len_evaluating_tabs(l) + 1, tabpos + 1) + '\\'
     return '\n'.join(lines)
 
 def yn_to_boolean(s):
