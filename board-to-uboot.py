@@ -41,7 +41,6 @@ board = tegra_pmx_board_parser.load_board(args.board)
 
 copyright_year = datetime.date.today().year
 
-# FIXME: Need to make rcv_sel parameter to PINCFG() macro below optional
 print('''\
 /*
  * Copyright (c) %(copyright_year)d, NVIDIA CORPORATION. All rights reserved.
