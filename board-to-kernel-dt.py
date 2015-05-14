@@ -44,8 +44,6 @@ def mapper_pull(val):
 def mapper_bool(val):
     return 'TEGRA_PIN_' + {False: 'DISABLE', True: 'ENABLE'}[val]
 
-print('		state_default: pinmux {')
-
 for pincfg in board.pincfgs_by_num():
     print('			' + pincfg.fullname + ' {')
     print('				nvidia,pins = "' + pincfg.fullname + '";')
@@ -69,7 +67,5 @@ for cfg in board.mipipadctrlcfgs_by_num():
     print('				nvidia,pins = "mipi_pad_ctrl_' + cfg.name + '";')
     print('				nvidia,function = "' + cfg.mux + '";')
     print('			};')
-
-print('		};')
 
 board.warn_about_unconfigured_pins()
