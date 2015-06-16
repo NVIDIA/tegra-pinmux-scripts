@@ -45,6 +45,12 @@ if args.debug:
 if dbg: print(args)
 
 supported_boards = {
+    'e2220-1170': {
+        # T210_customer_pinmux.xlsm worksheet [elided] (0-based rsvd)
+        'filename': 'csv/e2220-1170.csv',
+        'rsvd_base': 0,
+        'soc': 'tegra210',
+    },
     'jetson-tk1': {
         # Jetson_TK1_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd) from:
         # https://developer.nvidia.com/hardware-design-and-development
