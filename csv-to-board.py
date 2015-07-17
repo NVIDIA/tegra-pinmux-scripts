@@ -64,6 +64,12 @@ supported_boards = {
         'rsvd_base': 0,
         'soc': 'tegra124',
     },
+    'p2371-0000': {
+        # T210_customer_pinmux.xlsm worksheet [elided] Configuration (0-based rsvd)
+        'filename': 'csv/p2371-0000.csv',
+        'rsvd_base': 0,
+        'soc': 'tegra210',
+    },
     'p2571': {
         # T210_customer_pinmux.xlsm worksheet [elided] Configuration (0-based rsvd)
         'filename': 'csv/p2571.csv',
