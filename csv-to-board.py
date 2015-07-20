@@ -159,8 +159,13 @@ def e_input_munge(d):
         'ENABLE': True,
     }[d]
 
+warn_empty_gpio_init_val = False
 def gpio_init_val_munge(d):
+    global warn_empty_gpio_init_val
+    if d == '':
+        warn_empty_gpio_init_val = True
     return {
+        '': 'out?',
         '0': 'out0',
         '1': 'out1',
     }[d]
@@ -326,3 +331,6 @@ with open(cfgfile, 'wt') as fh:
     print('mipi_pad_ctrl_groups = (', file=fh)
     dump_py_table(mipi_headings, mipi_table, file=fh)
     print(')', file=fh)
+
+if warn_empty_gpio_init_val:
+    print('WARNING: Missing gpio_init_vals detected. Manual fixup required', file=sys.stderr)
