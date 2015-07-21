@@ -193,7 +193,7 @@ with open(board_conf['filename'], newline='') as fh:
 
         # Header rows
         if not found_header:
-            if row[0] != 'Ball Name':
+            if 'Ball Name' not in row:
                 if lnum > 25:
                     print('ERROR: Header row not found', file=sys.stderr)
                     sys.exit(1)
