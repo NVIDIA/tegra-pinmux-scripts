@@ -48,6 +48,14 @@ print('''\
  * SPDX-License-Identifier: GPL-2.0+
  */
 
+/*
+ * THIS FILE IS AUTO-GENERATED - DO NOT EDIT!
+ *
+ * To generate this file, use the tegra-pinmux-scripts tool available from
+ * https://github.com/NVIDIA/tegra-pinmux-scripts
+ * Run "board-to-uboot.py %(board_name)s".
+ */
+
 #ifndef _PINMUX_CONFIG_%(board_define)s_H_
 #define _PINMUX_CONFIG_%(board_define)s_H_
 
@@ -60,6 +68,7 @@ print('''\
 static const struct tegra_gpio_config %(board_varname)s_gpio_inits[] = {
 ''' % {
     'copyright_year': copyright_year,
+    'board_name': args.board,
     'board_define': board.definename,
     'board_varname': board.varname,
 }, end='')
