@@ -59,9 +59,9 @@ print('''\
 #ifndef _PINMUX_CONFIG_%(board_define)s_H_
 #define _PINMUX_CONFIG_%(board_define)s_H_
 
-#define GPIO_INIT(_gpio, _init)				\\
+#define GPIO_INIT(_port, _gpio, _init)			\\
 	{						\\
-		.gpio	= GPIO_P##_gpio,		\\
+		.gpio	= TEGRA_GPIO(_port, _gpio),	\\
 		.init	= TEGRA_GPIO_INIT_##_init,	\\
 	}
 
@@ -77,12 +77,18 @@ gpio_table = []
 for pincfg in board.pincfgs_by_num():
     if not pincfg.gpio_init:
         continue
+    gpio = pincfg.gpio_pin.gpio.upper()
+    port = gpio[:-1]
+    assert port.isalpha()
+    pin = gpio[-1]
+    assert pin.isdigit()
     row = (
-        pincfg.gpio_pin.gpio.upper(),
+        port,
+        pin,
         pincfg.gpio_init.upper(),
     )
     gpio_table.append(row)
-headings = ('gpio', 'init_val')
+headings = ('port', 'pin', 'init_val')
 dump_c_table(headings, 'GPIO_INIT', gpio_table)
 
 print('''\
