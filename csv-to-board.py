@@ -82,6 +82,12 @@ supported_boards = {
         'rsvd_base': 0,
         'soc': 'tegra210',
     },
+    'tegra210-smaug': {
+        # erista_customer_pinmux_v04_0420.xlsm
+        'filename': 'csv/tegra210-smaug-v04_0420.csv',
+        'rsvd_base': 0,
+        'soc': 'tegra210',
+    },
     'venice2': {
         # Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.xlsm worksheet Customer_Configuration (0-based rsvd)
         'filename': 'nv-internal-data/Venice2_T124_customer_pinmux_based_on_P4_rev47_2013-07-12.csv',
