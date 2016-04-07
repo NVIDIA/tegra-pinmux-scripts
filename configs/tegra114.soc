@@ -13,6 +13,7 @@ soc_drvgroups_have_hsm = True
 soc_drvgroups_have_lpmd = True
 soc_drvgroups_have_schmitt = True
 soc_pins_all_have_od = False
+soc_pins_all_have_parked = False
 soc_pins_all_have_schmitt = False
 soc_pins_have_drvtype = False
 soc_pins_have_e_io_hv = False
@@ -24,6 +25,8 @@ soc_pins_have_schmitt = False
 soc_drv_reg_base = 0x868
 soc_einput_b = 5
 soc_odrain_b = 6
+soc_parked_bank = 0
+soc_parked_bit = 0
 
 gpios = (
     #name,                gpio,  reg,    f0,           f1,         f2,             f3,         od,    ior,   rcv_sel

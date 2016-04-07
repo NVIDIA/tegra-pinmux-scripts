@@ -150,6 +150,7 @@ class Soc(TopLevelParsedObj):
             ('soc_drvgroups_have_lpmd', None),
             ('soc_drvgroups_have_schmitt', None),
             ('soc_pins_all_have_od', None),
+            ('soc_pins_all_have_parked', None),
             ('soc_pins_all_have_schmitt', None),
             ('soc_pins_have_drvtype', None),
             ('soc_pins_have_e_io_hv', None),
@@ -162,6 +163,8 @@ class Soc(TopLevelParsedObj):
             ('soc_mipipadctrl_reg_base', 0),
             ('soc_einput_b', None),
             ('soc_odrain_b', None),
+            ('soc_parked_bank', None),
+            ('soc_parked_bit', None),
         )
         TopLevelParsedObj.__init__(self, name, copy_attrs, data)
 
