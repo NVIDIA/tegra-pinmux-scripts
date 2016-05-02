@@ -643,7 +643,6 @@ static struct platform_driver %(soc)s_pinctrl_driver = {
 		.of_match_table = %(soc)s_pinctrl_of_match,
 	},
 	.probe = %(soc)s_pinctrl_probe,
-	.remove = tegra_pinctrl_remove,
 };
 module_platform_driver(%(soc)s_pinctrl_driver);
 
