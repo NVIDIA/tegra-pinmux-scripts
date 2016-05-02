@@ -163,7 +163,6 @@ class Soc(TopLevelParsedObj):
             ('soc_mipipadctrl_reg_base', 0),
             ('soc_einput_b', None),
             ('soc_odrain_b', None),
-            ('soc_parked_bank', None),
             ('soc_parked_bit', None),
         )
         TopLevelParsedObj.__init__(self, name, copy_attrs, data)

@@ -261,13 +261,11 @@ s += '''\
 
 if soc.soc_pins_all_have_parked:
     s += '''\
-		.parked_reg = PINGROUP_REG(r),
-		.parked_bank = %s,
 		.parked_bit = %s,
-''' % (soc.soc_parked_bank, soc.soc_parked_bit)
+''' % (soc.soc_parked_bit)
 else:
     s+= '''\
-		.parked_reg = -1,
+		.parked_bit = -1,
 '''
 
 if soc.soc_pins_have_hsm:
@@ -369,7 +367,7 @@ s += '''\
 		.rcv_sel_bit = -1,
 		.drv_reg = DRV_PINGROUP_REG(r),
 		.drv_bank = 0,
-		.parked_reg = -1,
+		.parked_bit = -1,
 		.hsm_bit = %(hsm_bit_val)s,
 		.schmitt_bit = %(schmitt_bit_val)s,
 		.lpmd_bit = %(lpmd_bit_val)s,

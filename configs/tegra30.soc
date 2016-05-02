@@ -22,7 +22,6 @@ soc_pins_have_schmitt = False
 soc_drv_reg_base = 0x868
 soc_einput_b = 5
 soc_odrain_b = 6
-soc_parked_bank = 0
 soc_parked_bit = 0
 
 gpios = (
