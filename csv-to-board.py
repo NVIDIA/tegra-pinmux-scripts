@@ -44,7 +44,15 @@ if args.debug:
     dbg = True
 if dbg: print(args)
 
+# Boards in alphabetical order in this dictionary:
 supported_boards = {
+    'cei-tk1-som': {
+        # tk1-som_pinmux_V2.4.xlsm  Colorado TK1-SOM Configuration (1-based rsvd)
+        # updated to version 11 by Peter Chubb
+        'filename': 'csv/cei-tk1-som.csv',
+        'rsvd_base': 1,
+        'soc': 'tegra124',
+    },
     'e2220-1170': {
         # T210_customer_pinmux.xlsm worksheet [elided] (0-based rsvd)
         'filename': 'csv/e2220-1170.csv',
