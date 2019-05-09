@@ -306,10 +306,12 @@ with open(board_conf['filename'], newline='') as fh:
 
         gpio_pin = soc.gpio_or_pin_by_name(ball_name)
         for i, func in enumerate((f0, f1, f2, f3)):
-            if func != gpio_pin.funcs[i]:
+            alt_rsvd = 'rsvd' + str(soc.soc_rsvd_base + i)
+            if func != gpio_pin.funcs[i] and func != alt_rsvd:
                 print('WARNING: %s: F%d mismatch CSV %s vs SOC %s' % (ball_name, i, repr(func), repr(gpio_pin.funcs[i])), file=sys.stderr)
         for i, func in enumerate((f0, f1, f2, f3)):
-            if func not in gpio_pin.funcs:
+            alt_rsvd = 'rsvd' + str(soc.soc_rsvd_base + i)
+            if func not in gpio_pin.funcs and func != alt_rsvd:
                 print('ERROR: %s: F%d CSV %s not in SOC list %s' % (ball_name, i, repr(func), repr(gpio_pin.funcs)), file=sys.stderr)
                 sys.exit(1)
         if fs not in (f0, f1, f2, f3):
