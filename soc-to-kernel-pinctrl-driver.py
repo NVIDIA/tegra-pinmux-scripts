@@ -44,8 +44,13 @@ print('''\
 // SPDX-License-Identifier: GPL-2.0-only
 /*
  * Pinctrl data for the NVIDIA %s pinmux
- *
- * Author: %s
+''' % soc.titlename, end = '')
+
+if soc.kernel_author != 'NVIDIA':
+    print(' *')
+    print(' * Author: %s' % soc.kernel_author)
+
+print('''\
  *
  * Copyright (c) %s, NVIDIA CORPORATION.  All rights reserved.
  */
@@ -62,7 +67,7 @@ print('''\
  * Most pins affected by the pinmux can also be GPIOs. Define these first.
  * These must match how the GPIO driver names/numbers its pins.
  */
-''' % (soc.titlename, soc.kernel_author, soc.kernel_copyright_years), end='')
+''' % soc.kernel_copyright_years, end='')
 
 # Do not add any more exceptions here; new SoCs should be formatted correctly
 if soc.name == 'tegra30':
