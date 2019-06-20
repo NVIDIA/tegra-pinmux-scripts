@@ -102,6 +102,8 @@ class DriveGroup(ReprDictObj):
             fields += ('schmitt_b',)
         if soc.soc_drvgroups_have_lpmd:
             fields += ('lpmd_b',)
+        if soc.soc_drvgroups_have_parked:
+            fields += ('prk_mask',)
         fields += ('drvdn_b', 'drvdn_w', 'drvup_b', 'drvup_w', 'slwr_b',
             'slwr_w', 'slwf_b', 'slwf_w')
         if soc.soc_drvgroups_have_drvtype:
@@ -148,6 +150,7 @@ class Soc(TopLevelParsedObj):
             ('soc_drvgroups_have_drvtype', None),
             ('soc_drvgroups_have_hsm', None),
             ('soc_drvgroups_have_lpmd', None),
+            ('soc_drvgroups_have_parked', None),
             ('soc_drvgroups_have_schmitt', None),
             ('soc_pins_all_have_od', None),
             ('soc_pins_all_have_parked', None),

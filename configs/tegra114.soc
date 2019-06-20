@@ -12,6 +12,7 @@ soc_drvgroups_have_drvtype = True
 soc_drvgroups_have_hsm = True
 soc_drvgroups_have_lpmd = True
 soc_drvgroups_have_schmitt = True
+soc_drvgroups_have_parked = False
 soc_pins_all_have_od = False
 soc_pins_all_have_parked = False
 soc_pins_all_have_schmitt = False

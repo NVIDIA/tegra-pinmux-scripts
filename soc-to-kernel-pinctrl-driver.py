@@ -258,15 +258,6 @@ s += '''\
 		.rcv_sel_bit = %(rcv_sel_val)s
 ''' % globals()
 
-if soc.soc_pins_all_have_parked:
-    s += '''\
-		.parked_bit = %s,
-''' % (soc.soc_parked_bit)
-else:
-    s+= '''\
-		.parked_bit = -1,
-'''
-
 if soc.soc_pins_have_hsm:
     s += '''\
 		.hsm_bit = PINGROUP_BIT_##hsm(9),
@@ -310,6 +301,15 @@ else:
 		.drv_reg = -1,
 '''
 
+if soc.soc_pins_all_have_parked:
+    s += '''\
+		.parked_bitmask = BIT(%s),
+''' % (soc.soc_parked_bit)
+else:
+    s+= '''\
+		.parked_bitmask = 0,
+'''
+
 s = append_aligned_tabs_indent_with_tabs(s, 72)
 print(s)
 
@@ -325,6 +325,8 @@ if soc.soc_drvgroups_have_schmitt:
     params += ['schmitt_b',]
 if soc.soc_drvgroups_have_lpmd:
     params += ['lpmd_b',]
+if soc.soc_drvgroups_have_parked:
+    params += ['prk_mask',]
 params += drive_params
 if soc.soc_drvgroups_have_drvtype:
     params += ['drvtype',]
@@ -346,6 +348,11 @@ if soc.soc_drvgroups_have_lpmd:
 else:
     lpmd_bit_val = '-1'
 
+if soc.soc_drvgroups_have_parked:
+    parked_bit_mask = 'prk_mask'
+else:
+    parked_bit_mask = '0'
+
 if soc.soc_drvgroups_have_drvtype:
     drvtype_bit_val = 'PINGROUP_BIT_##drvtype(6),'
 else:
@@ -366,7 +373,6 @@ s += '''\
 		.rcv_sel_bit = -1,
 		.drv_reg = DRV_PINGROUP_REG(r),
 		.drv_bank = 0,
-		.parked_bit = -1,
 		.hsm_bit = %(hsm_bit_val)s,
 		.schmitt_bit = %(schmitt_bit_val)s,
 		.lpmd_bit = %(lpmd_bit_val)s,
@@ -379,6 +385,7 @@ s += '''\
 		.slwf_bit = slwf_b,
 		.slwf_width = slwf_w,
 		.drvtype_bit = %(drvtype_bit_val)s
+		.parked_bitmask = %(parked_bit_mask)s,
 ''' % globals()
 
 s = append_aligned_tabs_indent_with_tabs(s, 72)
@@ -539,6 +546,8 @@ if soc.soc_drvgroups_have_schmitt:
     print('schmitt_b, ', end='')
 if soc.soc_drvgroups_have_lpmd:
     print('lpmd_b, ', end='')
+if soc.soc_drvgroups_have_parked:
+    print('prk_mask, ', end='')
 print('drvdn_b, drvdn_w, drvup_b, drvup_w, slwr_b, slwr_w, slwf_b, slwf_w', end='')
 if soc.soc_drvgroups_have_drvtype:
     print(', drvtype', end='')
@@ -570,6 +579,11 @@ for drvgroup in f():
         row += (repr(drvgroup.schmitt_b),)
     if soc.soc_drvgroups_have_lpmd:
         row += (repr(drvgroup.lpmd_b),)
+    if soc.soc_drvgroups_have_parked:
+        if (drvgroup.prk_mask != -1):
+                row += (hex(drvgroup.prk_mask),)
+        else:
+                row += (repr(drvgroup.prk_mask),)
     row += (
         repr(drvgroup.drvdn_b),
         repr(drvgroup.drvdn_w),
