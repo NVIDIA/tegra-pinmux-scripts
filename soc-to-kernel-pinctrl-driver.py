@@ -41,22 +41,16 @@ if dbg: print(args)
 soc = tegra_pmx_soc_parser.load_soc(args.soc)
 
 print('''\
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * Pinctrl data for the NVIDIA %s pinmux
  *
+ * Author: %s
+ *
  * Copyright (c) %s, NVIDIA CORPORATION.  All rights reserved.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
  */
 
-#include <linux/module.h>
+#include <linux/init.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
 #include <linux/pinctrl/pinctrl.h>
@@ -68,7 +62,7 @@ print('''\
  * Most pins affected by the pinmux can also be GPIOs. Define these first.
  * These must match how the GPIO driver names/numbers its pins.
  */
-''' % (soc.titlename, soc.kernel_copyright_years), end='')
+''' % (soc.titlename, soc.kernel_author, soc.kernel_copyright_years), end='')
 
 # Do not add any more exceptions here; new SoCs should be formatted correctly
 if soc.name == 'tegra30':
@@ -615,6 +609,7 @@ print('''\
 
 static const struct tegra_pinctrl_soc_data %(soc)s_pinctrl = {
 	.ngpios = NUM_GPIOS,
+	.gpio_compatible = "nvidia,%(soc)s-gpio",
 	.pins = %(soc)s_pins,
 	.npins = ARRAY_SIZE(%(soc)s_pins),
 	.functions = %(soc)s_functions,
@@ -635,7 +630,6 @@ static const struct of_device_id %(soc)s_pinctrl_of_match[] = {
 	{ .compatible = "nvidia,%(soc)s-pinmux", },
 	{ },
 };
-MODULE_DEVICE_TABLE(of, %(soc)s_pinctrl_of_match);
 
 static struct platform_driver %(soc)s_pinctrl_driver = {
 	.driver = {
@@ -644,9 +638,10 @@ static struct platform_driver %(soc)s_pinctrl_driver = {
 	},
 	.probe = %(soc)s_pinctrl_probe,
 };
-module_platform_driver(%(soc)s_pinctrl_driver);
 
-MODULE_AUTHOR("%(author)s");
-MODULE_DESCRIPTION("NVIDIA %(usoc)s pinctrl driver");
-MODULE_LICENSE("GPL v2");
+static int __init %(soc)s_pinctrl_init(void)
+{
+	return platform_driver_register(&%(soc)s_pinctrl_driver);
+}
+arch_initcall(%(soc)s_pinctrl_init);
 ''' % socvars, end='')
