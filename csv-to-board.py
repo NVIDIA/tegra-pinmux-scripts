@@ -59,12 +59,6 @@ supported_boards = {
         'rsvd_base': 0,
         'soc': 'tegra210',
     },
-    'jetson-nano-sd': {
-        # Jetson_Nano_DeveloperKit_Users_Pinmux_Configuration.xlsm (0-based rsvd)
-        'filename': 'csv/jetson-nano-sd.csv',
-        'rsvd_base': 0,
-        'soc': 'tegra210',
-    },
     'jetson-tk1': {
         # Jetson_TK1_customer_pinmux.xlsm worksheet Jetson TK1 Configuration (1-based rsvd) from:
         # https://developer.nvidia.com/hardware-design-and-development
@@ -87,6 +81,12 @@ supported_boards = {
     'p2371-2180': {
         # T210_customer_pinmux.xlsm worksheet [elided] Configuration (0-based rsvd)
         'filename': 'csv/p2371-2180.csv',
+        'rsvd_base': 0,
+        'soc': 'tegra210',
+    },
+    'p3450-porg': {
+        # Jetson_Nano_DeveloperKit_Users_Pinmux_Configuration.xlsm (0-based rsvd)
+        'filename': 'csv/p3450-porg.csv',
         'rsvd_base': 0,
         'soc': 'tegra210',
     },
